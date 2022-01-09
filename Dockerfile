@@ -6,6 +6,8 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
 
 # Install Node v16 (LTS)
 ENV NODE_VER="16.13.0"
+COPY sources.list /etc/apt/
+RUN apt-get update
 RUN ARCH= && \
     dpkgArch="$(dpkg --print-architecture)" && \
   case "${dpkgArch##*-}" in \
