@@ -55,11 +55,6 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: ${{ inputs.tags }}
 
-      - name: Setup ssh key
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-            ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
       - name: Build & push Docker image
         uses: mr-smithers-excellent/docker-build-push@v6
         id: docker_build
