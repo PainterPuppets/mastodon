@@ -2,6 +2,15 @@ name: Build & Publish docker image
 
 on:
   workflow_call:
+    inputs:
+      platforms:
+        required: true
+        type: string
+      file_to_build:
+        type: string
+      tags:
+        type: string
+
     outputs:
       # Image name
       image-name:
@@ -44,6 +53,7 @@ jobs:
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: ${{ inputs.tags }}
 
       - name: Setup ssh key
         uses: webfactory/ssh-agent@v0.9.0
@@ -57,7 +67,9 @@ jobs:
           ssh: default=${{ env.SSH_AUTH_SOCK }}
           image: ${{ env.IMAGE_NAME }}
           registry: ${{ env.REGISTRY }}
-          dockerfile: docker/Dockerfile
+          platforms: ${{ inputs.platforms }}
+          dockerfile: ${{ inputs.file_to_build }}
+          tags: ${{ steps.meta.outputs.tags }}
           enableBuildKit: true
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
