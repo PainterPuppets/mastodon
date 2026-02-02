@@ -1,0 +1,16 @@
+name: Build container release images
+on:
+  push:
+    branches:
+      - 'private'
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-image:
+    uses: ./.github/workflows/build-private-image.yml
+    with:
+      file_to_build: Dockerfile
+    secrets: inherit

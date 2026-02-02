@@ -1,0 +1,61 @@
+name: Build & Publish docker image
+
+on:
+  workflow_call:
+    inputs:
+      file_to_build:
+        type: string
+
+    outputs:
+      # Image name
+      image-name:
+        description: URL for docker image
+        value: ${{ jobs.build.outputs.image-name }}
+      # Image tag (version)
+      image-tag:
+        description: image tag(version)
+        value: ${{ jobs.build.outputs.image-tag }}
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    outputs:
+      image-name: '${{ steps.docker_build.outputs.imageFullName }}'
+      image-tag: '${{ steps.docker_build.outputs.tags }}'
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: lowercase github.repository
+        run: |
+          echo "IMAGE_NAME=`echo ${{github.event.repository.name}} | tr '[:upper:]' '[:lower:]'`" >>${GITHUB_ENV}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Build & push Docker image
+        uses: mr-smithers-excellent/docker-build-push@v6
+        id: docker_build
+        with:
+          dockerfile: ${{ inputs.file_to_build }}
+          image: ${{ env.IMAGE_NAME }}
+          registry: ${{ env.REGISTRY }}
+          enableBuildKit: true
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
