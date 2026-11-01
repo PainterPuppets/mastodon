@@ -6,6 +6,7 @@ import classNames from 'classnames';
 
 import { CaretRightIcon } from '@phosphor-icons/react';
 
+import { useResizeObserver } from '@/mastodon/hooks/useObserver';
 import type {
   ExpandedStatusShape,
   StatusShape,
@@ -14,8 +15,8 @@ import type {
 import { Button } from '../button/redesign';
 import { EmojiHTML } from '../emoji/html';
 
+import classes from './content.module.scss';
 import { useHandlersForStatus } from './hooks';
-import classes from './styles.module.scss';
 
 const MAX_LINES = 35;
 
@@ -39,25 +40,28 @@ export const StatusContent: React.FC<
 }) => {
   // Determines if a long post should show the read more button.
   const [collapsed, setCollapsed] = useState(false);
+  const onResize: ResizeObserverCallback = useCallback((entries) => {
+    for (const { target } of entries) {
+      setCollapsed(isElementOverflowing(target));
+    }
+  }, []);
+  const observer = useResizeObserver(onResize);
   const onRef = useCallback(
     (node: HTMLDivElement | null) => {
       if (!node || collapsed) {
         return;
       }
 
-      const { lineHeight } = getComputedStyle(node);
-      const lineHeightPx = parseFloat(lineHeight);
-      const maxHeight = lineHeightPx * MAX_LINES;
-
-      setCollapsed(
-        node.clientHeight > maxHeight || node.scrollWidth > node.clientWidth,
-      );
+      observer.observe(node);
+      setCollapsed(isElementOverflowing(node));
     },
-    [collapsed],
+    [collapsed, observer],
   );
 
   const htmlHandlers = useHandlersForStatus(status);
 
+  const text =
+    statusContent ?? status.translation?.contentHtml ?? status.contentHtml;
   const language = status.translation?.language ?? status.language;
 
   const isCollapsed = !!onReadMore && collapsible && collapsed;
@@ -73,24 +77,21 @@ export const StatusContent: React.FC<
         {...props}
         className={classNames(
           className,
-          classes.content,
+          classes.root,
           isCollapsed && classes.collapsed,
         )}
         style={style}
-        ref={onRef}
       >
-        <EmojiHTML
-          className={classes.contentText}
-          ref={onRef}
-          lang={language}
-          htmlString={
-            statusContent ??
-            status.translation?.contentHtml ??
-            status.contentHtml
-          }
-          extraEmojis={status.emojis}
-          {...htmlHandlers}
-        />
+        {text.trim().length > 0 && (
+          <EmojiHTML
+            className={classes.text}
+            ref={onRef}
+            lang={language}
+            htmlString={text}
+            extraEmojis={status.emojis}
+            {...htmlHandlers}
+          />
+        )}
 
         {children}
       </div>
@@ -100,7 +101,7 @@ export const StatusContent: React.FC<
           size='sm'
           onClick={onReadMore}
           trailingIcon={CaretRightIcon}
-          className={classes.contentReadMore}
+          className={classes.readMore}
         >
           <FormattedMessage
             id='status.view_post'
@@ -111,3 +112,11 @@ export const StatusContent: React.FC<
     </>
   );
 };
+
+function isElementOverflowing(node: Element) {
+  const { lineHeight } = getComputedStyle(node);
+  const lineHeightPx = parseFloat(lineHeight);
+  const maxHeight = lineHeightPx * MAX_LINES;
+
+  return node.clientHeight > maxHeight || node.scrollWidth > node.clientWidth;
+}
