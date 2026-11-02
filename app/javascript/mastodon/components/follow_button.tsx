@@ -2,8 +2,8 @@ import { useCallback, useEffect } from 'react';
 
 import { useIntl, defineMessages } from 'react-intl';
 
-import type { Icon } from '@phosphor-icons/react';
-import { UserMinusIcon, UserPlusIcon } from '@phosphor-icons/react';
+import classNames from 'classnames';
+import { Link } from 'react-router-dom';
 
 import { useIdentity } from '@/mastodon/identity_context';
 import {
@@ -12,15 +12,12 @@ import {
   unmuteAccount,
 } from 'mastodon/actions/accounts';
 import { openModal } from 'mastodon/actions/modal';
+import { Button } from 'mastodon/components/button';
 import { LoadingIndicator } from 'mastodon/components/loading_indicator';
 import { me } from 'mastodon/initial_state';
 import { useAppDispatch, useAppSelector } from 'mastodon/store';
 
 import { useBreakpoint } from '../features/ui/hooks/useBreakpoint';
-
-import { Button } from './button/redesign';
-import type { ButtonProps } from './button/redesign';
-import type { MastodonLocationDescriptor } from './router';
 
 const longMessages = defineMessages({
   unfollow: { id: 'account.unfollow', defaultMessage: 'Unfollow' },
@@ -58,30 +55,19 @@ const shortMessages = {
   }),
 };
 
-interface FollowButtonOptions {
+export const FollowButton: React.FC<{
   accountId?: string;
+  compact?: boolean;
   labelLength?: 'auto' | 'short' | 'long';
+  className?: string;
   withUnmute?: boolean;
-  reference?: string;
-}
-
-interface FollowButtonReturn {
-  label: React.ReactNode;
-  icon: Icon | undefined;
-  onClick: (() => void) | undefined;
-  link: MastodonLocationDescriptor | undefined;
-  disabled: boolean;
-  following: boolean;
-  secondary: boolean;
-  hidden: boolean;
-}
-
-export function useFollowButton({
+}> = ({
   accountId,
+  compact,
   labelLength = 'auto',
+  className,
   withUnmute = true,
-  reference,
-}: FollowButtonOptions): FollowButtonReturn {
+}) => {
   const intl = useIntl();
   const dispatch = useAppDispatch();
   const { signedIn } = useIdentity();
@@ -91,9 +77,7 @@ export function useFollowButton({
   const relationship = useAppSelector((state) =>
     accountId ? state.relationships.get(accountId) : undefined,
   );
-  const following = relationship?.following || relationship?.requested || false;
-  const secondary = following || relationship?.blocking || false;
-  const link = accountId === me ? '/profile/edit' : undefined;
+  const following = relationship?.following || relationship?.requested;
 
   useEffect(() => {
     if (accountId && signedIn) {
@@ -101,7 +85,7 @@ export function useFollowButton({
     }
   }, [dispatch, accountId, signedIn]);
 
-  const onClick = useCallback(() => {
+  const handleClick = useCallback(() => {
     if (!signedIn) {
       dispatch(
         openModal({
@@ -140,17 +124,10 @@ export function useFollowButton({
         }),
       );
     } else {
-      dispatch(followAccount(accountId, { ref: reference }));
+      // @ts-expect-error this action is not typed yet
+      dispatch(followAccount(accountId));
     }
-  }, [
-    signedIn,
-    relationship,
-    accountId,
-    withUnmute,
-    account,
-    dispatch,
-    reference,
-  ]);
+  }, [signedIn, relationship, accountId, withUnmute, account, dispatch]);
 
   const isNarrow = useBreakpoint('narrow');
   const useShortLabel =
@@ -161,14 +138,12 @@ export function useFollowButton({
     ? messages.followRequest
     : messages.follow;
 
-  let label: React.ReactNode;
-  let icon: Icon | undefined;
+  let label;
   let disabled =
     relationship?.blocked_by || account?.suspended || !!account?.moved;
 
   if (!signedIn) {
     label = intl.formatMessage(followMessage);
-    icon = UserPlusIcon;
   } else if (accountId === me) {
     label = intl.formatMessage(messages.editProfile);
   } else if (!relationship) {
@@ -178,7 +153,6 @@ export function useFollowButton({
     disabled = false;
   } else if (relationship.following) {
     label = intl.formatMessage(messages.unfollow);
-    icon = UserMinusIcon;
     disabled = false;
   } else if (relationship.blocking) {
     label = intl.formatMessage(messages.unblock);
@@ -188,60 +162,29 @@ export function useFollowButton({
     disabled = false;
   } else if (relationship.followed_by && !account?.locked) {
     label = intl.formatMessage(messages.followBack);
-    icon = UserPlusIcon;
   } else {
     label = intl.formatMessage(followMessage);
-    icon = UserPlusIcon;
   }
 
-  const isMovedAndUnfollowedAccount =
-    (account?.moved && !relationship?.following) || false;
-
-  return {
-    onClick,
-    link,
-    label,
-    icon,
-    disabled,
-    following,
-    secondary,
-    hidden: isMovedAndUnfollowedAccount,
-  };
-}
-
-export const FollowButton: React.FC<
-  FollowButtonOptions & Pick<ButtonProps, 'size' | 'color' | 'className'>
-> = ({ accountId, labelLength, withUnmute, reference, ...buttonProps }) => {
-  const { onClick, link, label, icon, disabled, secondary, hidden } =
-    useFollowButton({
-      accountId,
-      labelLength,
-      withUnmute,
-      reference,
+  if (accountId === me) {
+    const buttonClasses = classNames(className, 'button button-secondary', {
+      'button--compact': compact,
     });
 
-  if (hidden) {
-    return null;
-  }
-
-  const leadingIcon = labelLength === 'long' ? icon : undefined;
-
-  if (link) {
     return (
-      <Button as='link' to={link} leadingIcon={leadingIcon} {...buttonProps}>
+      <Link to='/profile/edit' className={buttonClasses}>
         {label}
-      </Button>
+      </Link>
     );
   }
 
   return (
     <Button
-      {...buttonProps}
-      leadingIcon={leadingIcon}
-      onClick={onClick}
+      onClick={handleClick}
       disabled={disabled}
-      variant={secondary ? 'tonal' : 'solid'}
-      color={secondary ? undefined : 'accent'}
+      secondary={following || relationship?.blocking}
+      compact={compact}
+      className={classNames(className, { 'button--destructive': following })}
     >
       {label}
     </Button>

@@ -30,12 +30,10 @@ import {
 import { hashObjectArray } from '@/mastodon/utils/hash';
 
 type ProfileData = {
-  [
-    Key in keyof Omit<
-      ApiProfileJSON,
-      'note' | 'fields' | 'featured_tags'
-    > as CamelCase<Key>
-  ]: ApiProfileJSON[Key];
+  [Key in keyof Omit<
+    ApiProfileJSON,
+    'note' | 'fields' | 'featured_tags'
+  > as CamelCase<Key>]: ApiProfileJSON[Key];
 } & {
   bio: ApiProfileJSON['note'];
   fields: FieldData[];
@@ -45,9 +43,10 @@ type ProfileData = {
 export type FieldData = ApiAccountFieldJSON & { id: string };
 
 export type TagData = {
-  [
-    Key in keyof Omit<ApiFeaturedTagJSON, 'statuses_count'> as CamelCase<Key>
-  ]: ApiFeaturedTagJSON[Key];
+  [Key in keyof Omit<
+    ApiFeaturedTagJSON,
+    'statuses_count'
+  > as CamelCase<Key>]: ApiFeaturedTagJSON[Key];
 } & {
   statusesCount: number;
 };

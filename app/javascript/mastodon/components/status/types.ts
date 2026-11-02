@@ -1,11 +1,12 @@
-import type { ComponentType, ReactNode } from 'react';
+import type { ComponentType, MouseEventHandler, ReactNode } from 'react';
 
-import StatusContainer from '@/mastodon/components/status/legacy/container';
+import StatusContainer from '@/mastodon/containers/status_container';
 import type { Account as TAccount } from '@/mastodon/models/account';
 import type { Status as TStatus } from '@/mastodon/models/status';
 
-import type { StatusHeaderRenderFn } from './legacy/header';
-import Status from './legacy/status';
+import Status from '../status';
+
+import type { StatusHeaderRenderFn } from './header';
 
 export type StatusContextType =
   | 'account'
@@ -27,7 +28,7 @@ export interface StatusContainerProps {
   rootId?: string;
   previousId?: string;
   nextId?: string;
-  onOpen?: () => void;
+  onClick?: MouseEventHandler<HTMLDivElement>;
   muted?: boolean;
   hidden?: boolean;
   unread?: boolean;

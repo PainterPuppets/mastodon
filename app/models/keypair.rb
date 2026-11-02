@@ -73,8 +73,6 @@ class Keypair < ApplicationRecord
         Linzer.new_rsa_v1_5_sha256_public_key(public_key)
       when 'ed25519'
         Linzer.new_ed25519_public_key(public_key)
-      when 'ml-dsa-44'
-        Linzer.new_ml_dsa_44_key(public_key)
       end
     end
   end
@@ -112,7 +110,7 @@ class Keypair < ApplicationRecord
       account:,
       uri: uri.presence || ActivityPub::TagManager.instance.key_uri_for(account),
       public_key: account.public_key,
-      private_key: nil,
+      private_key: account.private_key,
       type: :rsa
     )
   end

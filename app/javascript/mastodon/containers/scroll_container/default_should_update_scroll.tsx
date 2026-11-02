@@ -1,8 +1,9 @@
-import type { ShouldUpdateScroll } from 'scroll-behavior';
-
 import type { MastodonLocation } from 'mastodon/components/router';
 
-export type ShouldUpdateScrollFn = ShouldUpdateScroll<MastodonLocation>;
+export type ShouldUpdateScrollFn = (
+  prevLocationContext: MastodonLocation | null,
+  locationContext: MastodonLocation,
+) => boolean;
 
 /**
  * ScrollBehavior will automatically scroll to the top on navigations

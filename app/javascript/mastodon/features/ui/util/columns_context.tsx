@@ -16,7 +16,7 @@ export function useColumnsContext() {
   return useContext(ColumnsContext);
 }
 
-export const RenderIntoTabsBarPortal: React.FC<{
+export const ButtonInTabsBar: React.FC<{
   children: ReactElement | string | undefined;
 }> = ({ children }) => {
   const { multiColumn, tabsBarElement } = useColumnsContext();

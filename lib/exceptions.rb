@@ -10,6 +10,7 @@ module Mastodon
   class StreamValidationError < ValidationError; end
   class RaceConditionError < Error; end
   class RateLimitExceededError < Error; end
+  class SyntaxError < Error; end
   class InvalidParameterError < Error; end
   class SignatureVerificationError < Error; end
   class MalformedHeaderError < Error; end

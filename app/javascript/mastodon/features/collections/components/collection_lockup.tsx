@@ -2,7 +2,7 @@ import { FormattedMessage } from 'react-intl';
 
 import classNames from 'classnames';
 
-import { LockupLink, LockupWrapper } from '@/mastodon/components/lockup';
+import { ListItemLink, ListItemWrapper } from '@/mastodon/components/list_item';
 import WarningIcon from '@/material-icons/400-24px/warning.svg?react';
 import type { ApiCollectionJSON } from 'mastodon/api_types/collections';
 import { AvatarById } from 'mastodon/components/avatar';
@@ -65,7 +65,7 @@ export const CollectionLockup: React.FC<CollectionLockupProps> = ({
   const { id, name } = collection;
 
   return (
-    <LockupWrapper
+    <ListItemWrapper
       className={classNames(classes.wrapper, className)}
       icon={
         <AvatarGrid
@@ -75,7 +75,7 @@ export const CollectionLockup: React.FC<CollectionLockupProps> = ({
       }
       sideContent={sideContent}
     >
-      <LockupLink
+      <ListItemLink
         as={headingLevel}
         to={getCollectionPath(id)}
         id={titleId}
@@ -89,8 +89,8 @@ export const CollectionLockup: React.FC<CollectionLockupProps> = ({
         subtitleId={subtitleId}
       >
         {name}
-      </LockupLink>
-    </LockupWrapper>
+      </ListItemLink>
+    </ListItemWrapper>
   );
 };
 

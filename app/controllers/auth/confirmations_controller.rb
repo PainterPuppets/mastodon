@@ -38,7 +38,6 @@ class Auth::ConfirmationsController < Devise::ConfirmationsController
     show
   end
 
-  # Remove after 5.0
   def redirect_to_app?
     truthy_param?(:redirect_to_app)
   end

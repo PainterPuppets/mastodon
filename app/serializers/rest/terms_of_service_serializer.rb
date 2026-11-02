@@ -16,7 +16,7 @@ class REST::TermsOfServiceSerializer < ActiveModel::Serializer
   end
 
   def content
-    markdown.render(object.text.gsub('%{domain}', Rails.configuration.x.local_domain)) # rubocop:disable Style/FormatStringToken
+    markdown.render(format(object.text, domain: Rails.configuration.x.local_domain))
   end
 
   private

@@ -31,7 +31,7 @@
 
 .value {
   color: var(--color-text-primary);
-  font-weight: bold;
+  font-weight: 500;
 
   a {
     color: var(--color-text-brand);

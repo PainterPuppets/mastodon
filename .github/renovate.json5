@@ -3,15 +3,13 @@
   extends: [
     'config:recommended',
     'customManagers:dockerfileVersions',
-    'customManagers:githubActionsVersions',
-    'helpers:pinGitHubActionDigests',
     ':labels(dependencies)',
     ':prConcurrentLimitNone', // Remove limit for open PRs at any time.
     ':enableVulnerabilityAlertsWithLabel(security)',
   ],
   rebaseWhen: 'conflicted',
   minimumReleaseAge: '3 days', // Wait 3 days after the package has been published before upgrading it
-  minimumReleaseAgeBehaviour: 'timestamp-optional',
+  prCreation: 'not-pending',
   // packageRules order is important, they are applied from top to bottom and are merged,
   // meaning the most important ones must be at the bottom, for example grouping rules
   // If we do not want a package to be grouped with others, we need to set its groupName
@@ -64,7 +62,7 @@
     },
     {
       // Update GitHub Actions and Docker images weekly
-      matchManagers: ['dockerfile', 'docker-compose'],
+      matchManagers: ['github-actions', 'dockerfile', 'docker-compose'],
       extends: ['schedule:weekly'],
     },
     {
@@ -87,6 +85,14 @@
       matchPackageNames: ['postgres'],
       matchUpdateTypes: ['major'],
       dependencyDashboardApproval: true,
+    },
+    {
+      // Update devDependencies every week, with one grouped PR
+      matchManagers: ['npm'],
+      matchDepTypes: 'devDependencies',
+      matchUpdateTypes: ['patch', 'minor'],
+      groupName: 'devDependencies (non-major)',
+      extends: ['schedule:weekly'],
     },
     {
       // Group all eslint-related packages with `eslint` in the same PR
@@ -122,7 +128,8 @@
         'actions/upload-artifact',
       ],
       matchUpdateTypes: ['major'],
-      groupName: 'artifact actions',
+      groupName: 'artifact actions (major)',
+      extends: ['helpers:pinGitHubActionDigests'],
     },
     {
       // Update @types/* packages every week, with one grouped PR
@@ -163,21 +170,17 @@
       groupName: 'opentelemetry-ruby (non-major)',
     },
     {
-      // Unified Playwright group across Node and Ruby ecosystems
-      matchManagers: ['npm', 'bundler'],
-      matchPackageNames: ['playwright', 'playwright-ruby-client'],
-      matchUpdateTypes: ['patch', 'minor'],
+      // The ruby portion of the Playwright group
+      matchManagers: ['bundler'],
+      matchPackageNames: ['playwright-ruby-client'],
       groupName: 'Playwright',
     },
     {
-      // Update devDependencies every week, with one grouped PR
-      // Needs to stay at the bottom of the rule list, before match managers
+      // The node portion of the Playwright group
       matchManagers: ['npm'],
-      matchDepTypes: ['devDependencies'],
-      matchUpdateTypes: ['patch', 'minor'],
-      groupName: 'devDependencies (non-major)',
+      matchPackageNames: ['playwright'],
+      groupName: 'Playwright',
     },
-
     // Add labels depending on package manager
     { matchManagers: ['npm', 'nvm'], addLabels: ['javascript'] },
     { matchManagers: ['bundler', 'ruby-version'], addLabels: ['ruby'] },

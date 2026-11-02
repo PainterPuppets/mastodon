@@ -46,7 +46,7 @@
   }
 
   h3 {
-    font-weight: bold;
+    font-weight: 500;
     margin-bottom: 3px;
   }
 }
@@ -63,7 +63,7 @@
   border: none;
   color: inherit;
   font: inherit;
-  font-weight: bold;
+  font-weight: 500;
   padding: 0;
   text-wrap: nowrap;
   text-decoration: underline;

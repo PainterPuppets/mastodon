@@ -17,7 +17,7 @@ import { DisplayNameSimple } from '../display_name/simple';
 import { EmojiHTML } from '../emoji/html';
 import { FollowButton } from '../follow_button';
 import { FormattedDateWrapper } from '../formatted_date';
-import { LockupLink, LockupWrapper } from '../lockup';
+import { ListItemLink, ListItemWrapper } from '../list_item';
 import { NumberFields, NumberFieldsItem } from '../number_fields';
 import { RelativeTimestamp } from '../relative_timestamp';
 import { ShortNumber } from '../short_number';
@@ -27,7 +27,6 @@ import classes from './styles.module.scss';
 export interface RenderButtonOptions {
   accountId: string | undefined;
   relationship: Relationship | null | undefined;
-  reference?: string;
 }
 
 type Stat = 'followers' | 'following' | 'posts' | 'joined' | 'last-active';
@@ -39,7 +38,6 @@ interface Props {
   withBorder?: boolean;
   badge?: ReactNode;
   renderButton?: (options: RenderButtonOptions) => React.ReactNode;
-  reference?: string;
 }
 
 const DEFAULT_STATS: Stat[] = ['followers', 'posts', 'last-active'];
@@ -58,7 +56,6 @@ export const AccountListItem: React.FC<Props> = ({
   withBorder = true,
   badge: badgeProp,
   renderButton = defaultRenderButton,
-  reference,
 }) => {
   const intl = useIntl();
   const account = useAccount(accountId);
@@ -81,19 +78,18 @@ export const AccountListItem: React.FC<Props> = ({
 
   return (
     <div className={classes.wrapper} data-with-border={withBorder}>
-      <LockupWrapper
+      <ListItemWrapper
         className={classes.main}
         icon={<Avatar account={account} size={40} />}
         sideContent={
           <span className={classes.button}>
-            {renderButton({ accountId, relationship, reference })}
+            {renderButton({ accountId, relationship })}
           </span>
         }
       >
-        <LockupLink
-          to={{ pathname: `/@${account.acct}`, state: { reference } }}
+        <ListItemLink
+          to={`/@${account.acct}`}
           data-hover-card-account={accountId}
-          data-hover-card-reference={reference}
           subtitle={<span className={classes.handle}>{handle}</span>}
         >
           <DisplayNameSimple
@@ -101,8 +97,8 @@ export const AccountListItem: React.FC<Props> = ({
             className={classes.displayName}
           />
           {badge && <span className={classes.badge}>{badge}</span>}
-        </LockupLink>
-      </LockupWrapper>
+        </ListItemLink>
+      </ListItemWrapper>
 
       <NumberFields>
         {stats.includes('followers') && (
@@ -197,18 +193,12 @@ export const AccountListItem: React.FC<Props> = ({
   );
 };
 
-const defaultRenderButton = ({ accountId, reference }: RenderButtonOptions) => (
-  <AccountListItemFollowButton accountId={accountId} reference={reference} />
+const defaultRenderButton = ({ accountId }: RenderButtonOptions) => (
+  <AccountListItemFollowButton accountId={accountId} />
 );
 
 export const AccountListItemFollowButton: React.FC<{
   accountId: string | undefined;
-  reference?: string;
-}> = ({ accountId, reference }) => (
-  <FollowButton
-    size='sm'
-    labelLength='short'
-    accountId={accountId}
-    reference={reference}
-  />
+}> = ({ accountId }) => (
+  <FollowButton compact labelLength='short' accountId={accountId} />
 );

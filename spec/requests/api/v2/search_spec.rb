@@ -93,12 +93,12 @@ RSpec.describe 'Search API' do
       end
 
       context 'when search raises syntax error' do
-        before { allow(Search).to receive(:new).and_raise(SearchQueryTransformer::QueryError) }
+        before { allow(Search).to receive(:new).and_raise(Mastodon::SyntaxError) }
 
-        it 'returns http bad request' do
+        it 'returns http unprocessable_content' do
           get '/api/v2/search', headers: headers, params: params
 
-          expect(response).to have_http_status(400)
+          expect(response).to have_http_status(422)
           expect(response.content_type)
             .to start_with('application/json')
         end

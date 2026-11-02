@@ -14,8 +14,6 @@ import { useIntl } from 'react-intl';
 
 import classNames from 'classnames';
 
-import { getScrollParent } from '@react-aria/utils';
-
 import { useMergedRefs } from '@/mastodon/hooks/useMergedRefs';
 import KeyboardArrowDownIcon from '@/material-icons/400-24px/keyboard_arrow_down.svg?react';
 import KeyboardArrowUpIcon from '@/material-icons/400-24px/keyboard_arrow_up.svg?react';
@@ -23,7 +21,6 @@ import SearchIcon from '@/material-icons/400-24px/search.svg?react';
 import { IconButton } from 'mastodon/components/icon_button';
 
 import { LoadingIndicator } from '../loading_indicator';
-import type { PopoverProps } from '../popover';
 import { Popover } from '../popover';
 
 import classes from './combobox.module.scss';
@@ -33,7 +30,7 @@ import { TextInput } from './text_input_field';
 import type { TextInputProps } from './text_input_field';
 
 interface ComboboxItem {
-  id?: string;
+  id: string;
 }
 
 export interface ComboboxItemState {
@@ -77,14 +74,6 @@ interface ComboboxProps<
    */
   getIsItemDisabled?: (item: Item) => boolean;
   /**
-   * Show an empty state for empty groups instead of hiding them (the default).
-   * Group will be hidden when a falsy value is returned.
-   *
-   * Use only where necessary: This message will not be conveyed to users of
-   * assistive technology.
-   */
-  getGroupEmptyMessage?: (groupKey: GroupKey) => React.ReactNode;
-  /**
    * Customise the rendering of each option.
    * The rendered content must not contain other interactive content!
    */
@@ -111,39 +100,15 @@ interface ComboboxProps<
    */
   icon?: TextInputProps['icon'] | null;
   /**
-   * By default, suggestions are rendered into a popover.
-   * Change this to 'in-place' to render them directly below the text input
-   */
-  listBoxType?: 'popover' | 'in-place';
-  /**
-   * Customise styling of the list box container
-   */
-  listBoxClassName?: string;
-  /**
-   * Customise styling of the outermost combobox wrapper
-   */
-  wrapperClassName?: string;
-  /**
-   * Set to true to open the suggestion popover as soon as the input is focused.
-   * Doesn't apply when `listBoxType='in-place'` is used.
+   * Set to true to open as soon as there is focus
    */
   openOnFocus?: boolean;
   /**
-   * Control whether the first suggestion is highlighted by default.
-   * Keep this enabled for autocomplete-like menu suggestions, where pressing
-   * Enter should select the first item in the suggestion dropdown.
-   * Disable when freeform text input is expected, or when pressing Enter
-   * should submit a search instead.
-   */
-  autoHighlightFirstItem?: boolean;
-  /**
-   * Set to false to keep the menu open when an item is selected.
-   * Doesn't apply when `listBoxType='in-place'` is used.
+   * Set to false to keep the menu open when an item is selected
    */
   closeOnSelect?: boolean;
   /**
-   * Prevent the menu from opening, e.g. to prevent the empty state from showing.
-   * Doesn't apply when `listBoxType='in-place'` is used.
+   * Prevent the menu from opening, e.g. to prevent the empty state from showing
    */
   suppressMenu?: boolean;
 }
@@ -257,10 +222,9 @@ const ComboboxWithRef = <Item extends ComboboxItem, GroupKey extends string>(
     value,
     isLoading = false,
     items,
-    getItemId = (item) => ('id' in item ? (item.id ?? '') : ''),
+    getItemId = (item) => item.id,
     getIsItemDisabled,
     getIsItemSelected,
-    getGroupEmptyMessage,
     disabled,
     renderGroupTitle,
     renderItem,
@@ -268,15 +232,11 @@ const ComboboxWithRef = <Item extends ComboboxItem, GroupKey extends string>(
     onFocus,
     onChange,
     onKeyDown,
-    listBoxType = 'popover',
-    openOnFocus = listBoxType === 'in-place' || false,
-    closeOnSelect = listBoxType === 'in-place' ? false : true,
-    autoHighlightFirstItem = true,
+    openOnFocus = false,
+    closeOnSelect = true,
     suppressMenu = false,
     icon = SearchIcon,
     className,
-    wrapperClassName,
-    listBoxClassName,
     ...otherProps
   }: ComboboxProps<Item, GroupKey>,
   ref: React.ForwardedRef<HTMLInputElement>,
@@ -289,11 +249,16 @@ const ComboboxWithRef = <Item extends ComboboxItem, GroupKey extends string>(
   const [popoverElement, setPopoverElement] = useState<HTMLDivElement | null>(
     null,
   );
-  const [shouldMenuOpen, setShouldMenuOpen] = useState(false);
+
   // This ref tracks whether the menu was just closed following a
   // selection, and prevents the menu from re-opening again
   // when focus is returned to the input.
   const wasMenuJustClosedRef = useRef(false);
+
+  const [highlightedItemId, setHighlightedItemId] = useState<string | null>(
+    null,
+  );
+  const [shouldMenuOpen, setShouldMenuOpen] = useState(false);
 
   const hasGroups = !Array.isArray(items);
   const flatItems = useMemo(
@@ -306,25 +271,6 @@ const ComboboxWithRef = <Item extends ComboboxItem, GroupKey extends string>(
     [hasGroups, items],
   );
 
-  /**
-   * Stores the id of the currently highlighted item. If `null`, the id of
-   * the first item will be used unless `autoHighlightFirstItem` is false
-   */
-  const [highlightedItemIdState, setHighlightedItemId] = useState<
-    string | null
-  >(null);
-  const firstItem = flatItems[0];
-  const firstItemId = firstItem ? getItemId(firstItem) : null;
-  const highlightedItemId =
-    highlightedItemIdState ?? (autoHighlightFirstItem ? firstItemId : null);
-
-  const hasGroupEmptyMessages =
-    hasGroups &&
-    !!getGroupEmptyMessage &&
-    Object.keys(items).some(
-      (groupKey) => !!getGroupEmptyMessage(groupKey as GroupKey),
-    );
-
   const statusMessage = useGetA11yStatusMessage({
     value,
     isLoading,
@@ -335,9 +281,8 @@ const ComboboxWithRef = <Item extends ComboboxItem, GroupKey extends string>(
   const hasMenuContent =
     !disabled &&
     !suppressMenu &&
-    (flatItems.length > 0 || hasGroupEmptyMessages || showStatusMessageInMenu);
-  const isMenuOpen =
-    listBoxType === 'in-place' || (shouldMenuOpen && hasMenuContent);
+    (flatItems.length > 0 || showStatusMessageInMenu);
+  const isMenuOpen = shouldMenuOpen && hasMenuContent;
 
   const openMenu = useCallback(() => {
     setShouldMenuOpen(true);
@@ -348,17 +293,36 @@ const ComboboxWithRef = <Item extends ComboboxItem, GroupKey extends string>(
     setShouldMenuOpen(false);
   }, []);
 
-  // Scroll highlighted item into view as it changes
-  useEffect(() => {
-    if (highlightedItemId) {
-      const itemElement = popoverElement?.querySelector<HTMLLIElement>(
-        `[data-item-id='${highlightedItemId}']`,
-      );
-      if (itemElement) {
-        scrollItemIntoView(itemElement);
+  const highlightItem = useCallback(
+    (id: string | null) => {
+      setHighlightedItemId(id);
+      if (id) {
+        const itemElement = popoverElement?.querySelector<HTMLLIElement>(
+          `[data-item-id='${id}']`,
+        );
+        if (itemElement && popoverElement) {
+          scrollItemIntoView(itemElement, popoverElement);
+        }
       }
+    },
+    [popoverElement],
+  );
+
+  const resetHighlight = useCallback(() => {
+    const firstItem = flatItems[0];
+    const firstItemId = firstItem ? getItemId(firstItem) : null;
+    highlightItem(firstItemId);
+  }, [flatItems, getItemId, highlightItem]);
+
+  // Reset scroll & highlight when menu items change
+  useEffect(() => {
+    if (flatItems.length) {
+      // This only runs when the items change so should be safe from
+      // cascade renders.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      resetHighlight();
     }
-  }, [highlightedItemId, popoverElement]);
+  }, [flatItems, resetHighlight]);
 
   const handleFocus: React.FocusEventHandler<HTMLInputElement> = useCallback(
     (e) => {
@@ -373,20 +337,20 @@ const ComboboxWithRef = <Item extends ComboboxItem, GroupKey extends string>(
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       onChange(e);
-      setHighlightedItemId(null);
+      resetHighlight();
       setShouldMenuOpen(!!e.target.value);
     },
-    [onChange],
+    [onChange, resetHighlight],
   );
 
   const handleItemMouseEnter = useCallback(
     (e: React.MouseEvent<HTMLLIElement>) => {
       const { itemId } = e.currentTarget.dataset;
       if (itemId) {
-        setHighlightedItemId(itemId);
+        highlightItem(itemId);
       }
     },
-    [setHighlightedItemId],
+    [highlightItem],
   );
 
   const selectItem = useCallback(
@@ -442,10 +406,10 @@ const ComboboxWithRef = <Item extends ComboboxItem, GroupKey extends string>(
         // If no item is highlighted yet, highlight the first or last
         if (direction > 0) {
           const firstItem = flatItems.at(0);
-          setHighlightedItemId(firstItem ? getItemId(firstItem) : null);
+          highlightItem(firstItem ? getItemId(firstItem) : null);
         } else {
           const lastItem = flatItems.at(-1);
-          setHighlightedItemId(lastItem ? getItemId(lastItem) : null);
+          highlightItem(lastItem ? getItemId(lastItem) : null);
         }
       } else {
         // If there is a highlighted item, select the next or previous item
@@ -458,12 +422,12 @@ const ComboboxWithRef = <Item extends ComboboxItem, GroupKey extends string>(
         }
 
         const newHighlightedItem = flatItems[newIndex];
-        setHighlightedItemId(
+        highlightItem(
           newHighlightedItem ? getItemId(newHighlightedItem) : null,
         );
       }
     },
-    [getItemId, setHighlightedItemId, highlightedItemId, flatItems],
+    [getItemId, highlightItem, highlightedItemId, flatItems],
   );
 
   const handleInputKeyDown = useCallback(
@@ -493,7 +457,7 @@ const ComboboxWithRef = <Item extends ComboboxItem, GroupKey extends string>(
         }
       }
       if (e.key === 'Enter') {
-        if (isMenuOpen && highlightedItemId) {
+        if (isMenuOpen) {
           e.preventDefault();
           selectHighlightedItem();
         }
@@ -511,7 +475,6 @@ const ComboboxWithRef = <Item extends ComboboxItem, GroupKey extends string>(
       moveHighlight,
       onKeyDown,
       openMenu,
-      highlightedItemId,
       selectHighlightedItem,
     ],
   );
@@ -554,17 +517,14 @@ const ComboboxWithRef = <Item extends ComboboxItem, GroupKey extends string>(
   const listId = `${id}-list`;
 
   return (
-    <div
-      className={classNames(classes.wrapper, wrapperClassName)}
-      ref={wrapperRef}
-    >
+    <div className={classes.wrapper} ref={wrapperRef}>
       <TextInput
         role='combobox'
         {...otherProps}
         disabled={disabled}
         aria-controls={listId}
-        aria-expanded={listBoxType === 'popover' ? isMenuOpen : undefined}
-        aria-haspopup={listBoxType === 'popover' ? 'listbox' : undefined}
+        aria-expanded={isMenuOpen ? 'true' : 'false'}
+        aria-haspopup='listbox'
         aria-activedescendant={
           isMenuOpen && highlightedItemId ? highlightedItemId : undefined
         }
@@ -579,7 +539,7 @@ const ComboboxWithRef = <Item extends ComboboxItem, GroupKey extends string>(
         className={classNames(classes.input, className)}
         ref={mergedRef}
       />
-      {hasMenuContent && listBoxType === 'popover' && (
+      {hasMenuContent && (
         <IconButton
           title={
             isMenuOpen
@@ -603,70 +563,67 @@ const ComboboxWithRef = <Item extends ComboboxItem, GroupKey extends string>(
       <span role='status' aria-live='polite' className='sr-only'>
         {isMenuOpen && statusMessage}
       </span>
-      <OptionalPopover
-        renderAsPopover={listBoxType === 'popover'}
-        isMenuOpen={isMenuOpen}
+      <Popover
+        matchReferenceWidth
+        isOpen={isMenuOpen}
         onClose={closeMenu}
-        ref={setPopoverElement}
+        offset={1}
+        placement='bottom-start'
+        strategy='absolute'
         popoverElement={popoverElement}
-        popoverReference={inputElement}
-        className={listBoxClassName}
+        reference={inputElement}
+        container={null}
       >
-        <StatusMessageWrapper
-          showStatus={showStatusMessageInMenu && !hasGroupEmptyMessages}
-          isLoading={isLoading}
-          status={statusMessage}
-        >
-          {hasGroups ? (
-            <div role='listbox' id={listId} tabIndex={-1}>
-              {(Object.keys(items) as GroupKey[]).map((groupKey) => {
-                const groupItems = items[groupKey];
-                const groupTitleId = `${listId}-group-${groupKey}`;
-                const customGroupTitle = renderGroupTitle?.(
-                  groupKey,
-                  groupTitleId,
-                );
-                const hasTitle = customGroupTitle !== null;
-                const hasGroupItems = !!groupItems?.length;
-                const groupEmptyState = getGroupEmptyMessage?.(groupKey);
+        {({ props, placement }) => (
+          <div
+            {...props}
+            ref={setPopoverElement}
+            className={classNames(classes.popover, placement)}
+          >
+            <StatusMessageWrapper
+              showStatus={showStatusMessageInMenu}
+              isLoading={isLoading}
+              status={statusMessage}
+            >
+              {hasGroups ? (
+                <div role='listbox' id={listId} tabIndex={-1}>
+                  {(Object.keys(items) as GroupKey[]).map((groupKey) => {
+                    const groupItems = items[groupKey];
+                    const groupTitleId = `${listId}-group-${groupKey}`;
+                    const customGroupTitle = renderGroupTitle?.(
+                      groupKey,
+                      groupTitleId,
+                    );
+                    const hasTitle = customGroupTitle !== null;
 
-                if (!hasGroupItems && !groupEmptyState) {
-                  return null;
-                }
+                    if (!groupItems?.length) return null;
 
-                const showEmptyState = !hasGroupItems && groupEmptyState;
-                const GroupWrapperElement = showEmptyState ? 'div' : 'ul';
-
-                return (
-                  <GroupWrapperElement
-                    key={groupKey}
-                    role='group'
-                    aria-labelledby={hasTitle ? groupTitleId : undefined}
-                  >
-                    {hasTitle &&
-                      (customGroupTitle ?? (
-                        <ComboboxMenuGroupTitle id={groupTitleId}>
-                          {groupKey}
-                        </ComboboxMenuGroupTitle>
-                      ))}
-                    {hasGroupItems ? (
-                      renderItems(groupItems)
-                    ) : (
-                      <div className={classes.groupEmptyMessage}>
-                        {groupEmptyState}
-                      </div>
-                    )}
-                  </GroupWrapperElement>
-                );
-              })}
-            </div>
-          ) : (
-            <ul role='listbox' id={listId} tabIndex={-1}>
-              {renderItems(items)}
-            </ul>
-          )}
-        </StatusMessageWrapper>
-      </OptionalPopover>
+                    return (
+                      <ul
+                        key={groupKey}
+                        role='group'
+                        aria-labelledby={hasTitle ? groupTitleId : undefined}
+                      >
+                        {hasTitle &&
+                          (customGroupTitle ?? (
+                            <ComboboxMenuGroupTitle id={groupTitleId}>
+                              {groupKey}
+                            </ComboboxMenuGroupTitle>
+                          ))}
+                        {renderItems(groupItems)}
+                      </ul>
+                    );
+                  })}
+                </div>
+              ) : (
+                <ul role='listbox' id={listId} tabIndex={-1}>
+                  {renderItems(items)}
+                </ul>
+              )}
+            </StatusMessageWrapper>
+          </div>
+        )}
+      </Popover>
     </div>
   );
 };
@@ -683,63 +640,6 @@ export const Combobox = forwardRef(ComboboxWithRef) as {
 };
 
 Combobox.displayName = 'Combobox';
-
-const OptionalPopover: React.FC<{
-  renderAsPopover: boolean;
-  isMenuOpen: boolean;
-  popoverElement: PopoverProps['popoverElement'];
-  popoverReference: PopoverProps['reference'];
-  onClose: PopoverProps['onClose'];
-  ref: React.Ref<HTMLDivElement>;
-  className: string | undefined;
-  children: React.ReactNode;
-}> = ({
-  renderAsPopover,
-  isMenuOpen,
-  popoverElement,
-  popoverReference,
-  ref,
-  onClose,
-  className,
-  children,
-}) => {
-  if (renderAsPopover) {
-    return (
-      <Popover
-        matchReferenceWidth
-        isOpen={isMenuOpen}
-        onClose={onClose}
-        offset={1}
-        placement='bottom-start'
-        strategy='absolute'
-        popoverElement={popoverElement}
-        reference={popoverReference}
-        container={null}
-      >
-        {({ props, placement }) => (
-          <div
-            {...props}
-            ref={ref}
-            className={classNames(
-              classes.listBoxWrapper,
-              classes.listBoxWrapperPopover,
-              className,
-              placement,
-            )}
-          >
-            {children}
-          </div>
-        )}
-      </Popover>
-    );
-  }
-
-  return (
-    <div ref={ref} className={classNames(classes.listBoxWrapper, className)}>
-      {children}
-    </div>
-  );
-};
 
 const StatusMessageWrapper: React.FC<{
   showStatus: boolean;
@@ -805,13 +705,7 @@ function useGetA11yStatusMessage({
 
 const SCROLL_MARGIN = 6;
 
-function scrollItemIntoView(item: HTMLElement) {
-  const scrollParent = getScrollParent(item);
-
-  if (!(scrollParent instanceof HTMLElement)) {
-    return;
-  }
-
+function scrollItemIntoView(item: HTMLElement, scrollParent: HTMLElement) {
   const itemTopEdge = item.offsetTop;
   const itemBottomEdge = itemTopEdge + item.offsetHeight;
 

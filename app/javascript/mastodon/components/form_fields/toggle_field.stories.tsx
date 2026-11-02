@@ -9,12 +9,11 @@ const meta = {
     label: 'Label',
     hint: 'This is a description of this form field',
     disabled: false,
-    size: 'lg',
+    size: 20,
   },
   argTypes: {
     size: {
-      control: { type: 'radio' },
-      options: ['sm', 'lg'],
+      control: { type: 'range', min: 10, max: 40, step: 1 },
     },
   },
 } satisfies Meta<typeof ToggleField>;
@@ -65,6 +64,12 @@ export const Plain: Story = {
 
 export const Small: Story = {
   args: {
-    size: 'sm',
+    size: 12,
+  },
+};
+
+export const Large: Story = {
+  args: {
+    size: 36,
   },
 };

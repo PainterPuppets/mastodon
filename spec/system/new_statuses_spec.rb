@@ -16,17 +16,13 @@ RSpec.describe 'NewStatuses', :inline_jobs, :js, :streaming do
   it 'can be posted' do
     visit_homepage
 
-    within('nav') do
-      click_on frontend_translations('tabs_bar.publish')
-    end
-
-    within('form[role="dialog"]') do
-      fill_in frontend_translations('compose.post.placeholder'), with: status_text
-      click_on frontend_translations('compose.publish')
+    within('.compose-form') do
+      fill_in frontend_translations('compose_form.placeholder'), with: status_text
+      click_on 'Post'
     end
 
     expect(page)
-      .to have_css('article[data-id]', text: status_text)
+      .to have_css('.status__content__text', text: status_text)
   end
 
   def visit_homepage
@@ -34,5 +30,6 @@ RSpec.describe 'NewStatuses', :inline_jobs, :js, :streaming do
 
     expect(page)
       .to have_css('div.app-holder')
+      .and have_css('form.compose-form')
   end
 end

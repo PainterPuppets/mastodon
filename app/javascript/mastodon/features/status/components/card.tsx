@@ -6,7 +6,8 @@ import classNames from 'classnames';
 
 import { isMap } from 'immutable';
 
-import { decodeIDNA } from '@/mastodon/utils/links';
+import punycode from 'punycode/';
+
 import DescriptionIcon from '@/material-icons/400-24px/description-fill.svg?react';
 import OpenInNewIcon from '@/material-icons/400-24px/open_in_new.svg?react';
 import PlayArrowIcon from '@/material-icons/400-24px/play_arrow-fill.svg?react';
@@ -16,6 +17,19 @@ import { MoreFromAuthor } from 'mastodon/components/more_from_author';
 import { RelativeTimestamp } from 'mastodon/components/relative_timestamp';
 import { displayMedia, useBlurhash } from 'mastodon/initial_state';
 import type { CardShape, Card as CardType } from 'mastodon/models/status';
+
+const IDNA_PREFIX = 'xn--';
+
+const decodeIDNA = (domain: string) => {
+  return domain
+    .split('.')
+    .map((part) =>
+      part.startsWith(IDNA_PREFIX)
+        ? punycode.decode(part.slice(IDNA_PREFIX.length))
+        : part,
+    )
+    .join('.');
+};
 
 const getHostname = (url: string) => {
   const parser = document.createElement('a');
@@ -77,7 +91,7 @@ const CardVideo: React.FC<{ card: CardShape }> = ({ card }) => {
   );
 };
 
-export const Card: React.FC<CardProps> = ({ card: rawCard, sensitive }) => {
+const Card: React.FC<CardProps> = ({ card: rawCard, sensitive }) => {
   const card: CardShape | null = useMemo(
     () => (isMap(rawCard) ? (rawCard.toJS() as CardShape) : rawCard),
     [rawCard],
@@ -111,11 +125,48 @@ export const Card: React.FC<CardProps> = ({ card: rawCard, sensitive }) => {
     return null;
   }
 
+  const provider =
+    card.provider_name.length === 0
+      ? decodeIDNA(getHostname(card.url))
+      : card.provider_name;
   const interactive = card.type === 'video';
   const language = card.language ?? '';
   const hasImage = (card.image?.length ?? 0) > 0;
   const largeImage = (hasImage && card.width > card.height) || interactive;
   const author = card.authors.at(0)?.accountId;
+
+  const description = (
+    <div className='status-card__content' dir='auto'>
+      <span className='status-card__host'>
+        <span lang={language}>{provider}</span>
+        {card.published_at && (
+          <>
+            {' '}
+            · <RelativeTimestamp timestamp={card.published_at} />
+          </>
+        )}
+      </span>
+
+      <strong className='status-card__title' title={card.title} lang={language}>
+        {card.title}
+      </strong>
+
+      {!author &&
+        (card.author_name.length > 0 ? (
+          <span className='status-card__author'>
+            <FormattedMessage
+              id='link_preview.author'
+              defaultMessage='By {name}'
+              values={{ name: <strong>{card.author_name}</strong> }}
+            />
+          </span>
+        ) : (
+          <span className='status-card__description' lang={language}>
+            {card.description}
+          </span>
+        ))}
+    </div>
+  );
 
   const thumbnailStyle: React.CSSProperties = {
     visibility: revealed ? undefined : 'hidden',
@@ -227,7 +278,7 @@ export const Card: React.FC<CardProps> = ({ card: rawCard, sensitive }) => {
           onClick={revealed ? undefined : handleReveal}
           aria-describedby={revealed ? undefined : spoilerButtonId}
         >
-          <CardDescription card={card} />
+          {description}
         </a>
       </div>
     );
@@ -259,53 +310,11 @@ export const Card: React.FC<CardProps> = ({ card: rawCard, sensitive }) => {
         rel='noopener'
       >
         {embed}
-        <CardDescription card={card} />
+        {description}
       </a>
 
       {author && <MoreFromAuthor accountId={author} />}
     </>
-  );
-};
-
-export const CardDescription: React.FC<{ card: CardShape }> = ({ card }) => {
-  const provider =
-    card.provider_name.length === 0
-      ? decodeIDNA(getHostname(card.url))
-      : card.provider_name;
-  const language = card.language ?? '';
-  const author = card.authors.at(0)?.accountId;
-
-  return (
-    <div className='status-card__content' dir='auto'>
-      <span className='status-card__host'>
-        <span lang={language}>{provider}</span>
-        {card.published_at && (
-          <>
-            {' '}
-            · <RelativeTimestamp timestamp={card.published_at} />
-          </>
-        )}
-      </span>
-
-      <strong className='status-card__title' title={card.title} lang={language}>
-        {card.title}
-      </strong>
-
-      {!author &&
-        (card.author_name.length > 0 ? (
-          <span className='status-card__author'>
-            <FormattedMessage
-              id='link_preview.author'
-              defaultMessage='By {name}'
-              values={{ name: <strong>{card.author_name}</strong> }}
-            />
-          </span>
-        ) : (
-          <span className='status-card__description' lang={language}>
-            {card.description}
-          </span>
-        ))}
-    </div>
   );
 };
 

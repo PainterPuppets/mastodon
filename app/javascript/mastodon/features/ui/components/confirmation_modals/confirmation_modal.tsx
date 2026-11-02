@@ -3,7 +3,7 @@ import { useCallback } from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import { NavigationFocusTarget } from '@/mastodon/components/navigation_focus_target';
-import { Button } from 'mastodon/components/button/redesign';
+import { Button } from 'mastodon/components/button';
 import {
   ModalShell,
   ModalShellActions,
@@ -86,34 +86,39 @@ export const ConfirmationModal: React.FC<
       </ModalShellBody>
 
       <ModalShellActions>
-        <Button onClick={onClose}>
+        <button onClick={onClose} className='link-button' type='button'>
           {cancel ?? (
             <FormattedMessage
               id='confirmation_modal.cancel'
               defaultMessage='Cancel'
             />
           )}
-        </Button>
+        </button>
 
         {secondary && (
           <>
             <div className='spacer' />
-            <Button onClick={handleSecondary} disabled={disabled}>
+            <button
+              onClick={handleSecondary}
+              className='link-button'
+              type='button'
+              disabled={disabled}
+            >
               {secondary}
-            </Button>
+            </button>
           </>
         )}
 
+        {/* eslint-disable jsx-a11y/no-autofocus -- we are in a modal and thus autofocusing is justified */}
         <Button
           type='submit'
           loading={updating}
           disabled={disabled}
           autoFocus={!noFocusButton}
-          variant='solid'
-          color='accent'
         >
           {confirm}
         </Button>
+        {/* eslint-enable */}
       </ModalShellActions>
     </ModalShell>
   );

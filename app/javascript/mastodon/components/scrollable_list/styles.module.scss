@@ -1,5 +1,0 @@
-.withComposerPadding {
-  :global(body.layout-multiple-columns) & {
-    padding-bottom: var(--current-composer-height, 0);
-  }
-}

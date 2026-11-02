@@ -1,12 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
 
-import { useToggle } from '@/mastodon/hooks/useToggle';
 import ChatIcon from '@/material-icons/400-24px/chat.svg?react';
 import DownloadIcon from '@/material-icons/400-24px/download.svg?react';
 import HeadphonesIcon from '@/material-icons/400-24px/headphones.svg?react';
 
-import { Button, IconButton, ToggleButton, ToggleIconButton } from './redesign';
+import { Button, IconButton } from './redesign';
 
 const iconArgType = {
   control: 'select',
@@ -45,11 +44,11 @@ const meta = {
     },
     variant: {
       control: 'inline-radio',
-      options: ['solid', 'tonal', 'ghost'],
+      options: ['solid', 'ghost'],
     },
     color: {
       control: 'inline-radio',
-      options: ['neutral', 'accent', 'destructive'],
+      options: ['neutral', 'accent', 'tonal', 'destructive'],
     },
     leadingIcon: iconArgType,
     trailingIcon: iconArgType,
@@ -58,9 +57,6 @@ const meta = {
         disable: true,
       },
     },
-  },
-  parameters: {
-    redesign: true,
   },
 } satisfies Meta<typeof Button>;
 
@@ -83,8 +79,8 @@ export const IconTrailing: Story = {
 };
 
 export const IconOnly: Story = {
-  render({ leadingIcon, ...args }) {
-    return <IconButton {...args} icon={leadingIcon ?? ChatIcon} />;
+  render(args) {
+    return <IconButton {...args} icon={args.leadingIcon ?? ChatIcon} />;
   },
   args: {
     leadingIcon: ChatIcon,
@@ -92,29 +88,13 @@ export const IconOnly: Story = {
 };
 
 export const Link: Story = {
+  render(args) {
+    if (args.as === 'link') {
+      return <Button {...args} to='/example' />;
+    }
+    return <Button {...args} />;
+  },
   args: {
     as: 'link',
-    to: '/example',
-  },
-};
-
-export const Toggle: Story = {
-  render(args) {
-    const [active, { onToggle }] = useToggle();
-    return <ToggleButton {...args} active={active} onClick={onToggle} />;
-  },
-};
-
-export const ToggleIcon: Story = {
-  render(args) {
-    const [active, { onToggle }] = useToggle();
-    return (
-      <ToggleIconButton
-        {...args}
-        active={active}
-        onClick={onToggle}
-        icon={args.leadingIcon ?? ChatIcon}
-      />
-    );
   },
 };

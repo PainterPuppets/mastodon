@@ -35,9 +35,5 @@ namespace :admin do
 
       resource :registration, only: [:new, :create]
     end
-
-    resources :capabilities, only: [] do
-      resource :activation, only: [:create, :destroy], controller: 'capability_activations'
-    end
   end
 end

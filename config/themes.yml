@@ -1,8 +1,1 @@
-default:
-  path: styles/application.scss
-  colors:
-    - indigo
-    - lime
-    - pink
-    - orange
-    - cyan
+default: styles/application.scss

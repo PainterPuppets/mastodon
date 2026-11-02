@@ -91,8 +91,8 @@ export function initMuteModal(account) {
     dispatch(openModal({
       modalType: 'MUTE',
       modalProps: {
-        accountId: account.id,
-        acct: account.acct,
+        accountId: account.get('id'),
+        acct: account.get('acct'),
       },
     }));
   };

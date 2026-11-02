@@ -10,16 +10,11 @@ import type { Map as ImmutableMap } from 'immutable';
 import { animated, useSpring } from '@react-spring/web';
 import { useDrag } from '@use-gesture/react';
 
-import { Search } from '@/mastodon/components/search';
-import {
-  StatusBookmarkActiveIcon,
-  StatusBookmarkIcon,
-  StatusLikeActiveIcon,
-  StatusLikeIcon,
-} from '@/mastodon/components/status/icons';
 import { useAccount } from '@/mastodon/hooks/useAccount';
 import AddIcon from '@/material-icons/400-24px/add.svg?react';
 import AlternateEmailIcon from '@/material-icons/400-24px/alternate_email.svg?react';
+import BookmarksActiveIcon from '@/material-icons/400-24px/bookmarks-fill.svg?react';
+import BookmarksIcon from '@/material-icons/400-24px/bookmarks.svg?react';
 import CollectionsActiveIcon from '@/material-icons/400-24px/category-fill.svg?react';
 import CollectionsIcon from '@/material-icons/400-24px/category.svg?react';
 import HomeActiveIcon from '@/material-icons/400-24px/home-fill.svg?react';
@@ -31,12 +26,15 @@ import PersonAddActiveIcon from '@/material-icons/400-24px/person_add-fill.svg?r
 import PersonAddIcon from '@/material-icons/400-24px/person_add.svg?react';
 import PublicIcon from '@/material-icons/400-24px/public.svg?react';
 import SettingsIcon from '@/material-icons/400-24px/settings.svg?react';
+import StarActiveIcon from '@/material-icons/400-24px/star-fill.svg?react';
+import StarIcon from '@/material-icons/400-24px/star.svg?react';
 import TrendingUpIcon from '@/material-icons/400-24px/trending_up.svg?react';
 import { fetchFollowRequests } from 'mastodon/actions/accounts';
 import { openNavigation, closeNavigation } from 'mastodon/actions/navigation';
 import { Account } from 'mastodon/components/account';
 import { IconWithBadge } from 'mastodon/components/icon_with_badge';
 import { WordmarkLogo } from 'mastodon/components/logo';
+import { Search } from 'mastodon/features/compose/components/search';
 import { ColumnLink } from 'mastodon/features/ui/components/column_link';
 import { getNavigationSkipLinkId } from 'mastodon/features/ui/components/skip_links';
 import { useBreakpoint } from 'mastodon/features/ui/hooks/useBreakpoint';
@@ -347,8 +345,8 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
                 transparent
                 to='/favourites'
                 icon='star'
-                iconComponent={StatusLikeIcon}
-                activeIconComponent={StatusLikeActiveIcon}
+                iconComponent={StarIcon}
+                activeIconComponent={StarActiveIcon}
                 text={intl.formatMessage(messages.favourites)}
               />
             </li>
@@ -357,8 +355,8 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
                 transparent
                 to='/bookmarks'
                 icon='bookmarks'
-                iconComponent={StatusBookmarkIcon}
-                activeIconComponent={StatusBookmarkActiveIcon}
+                iconComponent={BookmarksIcon}
+                activeIconComponent={BookmarksActiveIcon}
                 text={intl.formatMessage(messages.bookmarks)}
               />
             </li>

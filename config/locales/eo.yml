@@ -8,14 +8,6 @@ eo:
     hosted_on: "%{domain} estas nodo de Mastodon"
     title: Prio
   accounts:
-    api_errors:
-      2fa_required: Via konto ne povas esti uzita sen agordado de dua faktoro por aŭtentigo
-      account_deleted: Via konto estis forigita
-      account_suspended: Via konto estis limigita
-      login_disabled: Via konto estas nune malŝaltita
-      memorial: Via konto estis memorigaĵigita
-      pending_approval: Via konto nune necesas aprobon de moderigantoj
-      pending_confirmation: En via konto mankas konfirmita retpoŝtadreso
     errors:
       cannot_be_added_to_collections: Ĉi tiu konto ne povas esti aldonita al kolektoj.
     followers:
@@ -81,10 +73,6 @@ eo:
       disable_sign_in_token_auth: Malebligu retpoŝtan ĵeton-aŭtentikigon
       disable_two_factor_authentication: Malŝalti 2FA-n
       disabled: Frostigita
-      discoverable:
-        disabled: Autoro ne permesis esti malkovrebla
-        enabled: Autoro permesis esti malkovrebla
-        title: Malkovreblaj
       display_name: Montrata nomo
       domain: Domajno
       edit: Redakti
@@ -93,15 +81,8 @@ eo:
       enable: Malfrostigi
       enable_sign_in_token: Ŝalti defion de sekureca kodo
       enable_sign_in_token_auth: Ebligu retpoŝtan ĵeton-aŭtentikigon
-      enable_unconfirmed: Permesi konfirman retpoŝton
       enabled: Ebligita
       enabled_msg: Sukcese malfrostigis konton de %{username}
-      follow_recommendations:
-        allowed: Permesita
-        suppress: Subremi rekomendaĵojn de sekvado
-        suppressed: Subpremita
-        title: Rekomendoj de sekvado
-        unsuppress: Restarigi ĉiujn sekvorekomendojn
       followers: Sekvoj
       follows: Sekvatoj
       header: Kapa bildo
@@ -147,7 +128,6 @@ eo:
       push_subscription_expires: Eksvalidiĝo de la abono al PuSH
       redownload: Aktualigi profilon
       redownloaded_msg: Sukcese aktualigis profilon de %{username} el origino
-      registration_app: Aplikaĵo de registrado
       reject: Malakcepti
       rejected_msg: Sukcese malaprobis aliĝ-peton de %{username}
       remote_suspension_irreversible: La informoj de ĉi tiu konto estis neinversigeble forigitaj.
@@ -187,12 +167,6 @@ eo:
       suspension_irreversible: La datumoj de ĉi tiu konto estas porĉiame forigitaj. Vi povas malsuspendi tiun konton por igi ĝin uzebla, sed ĝi ne rehavos ajnan datumon kiun ĝi antaŭe havis.
       suspension_reversible_hint_html: La konto estas suspendita, kaj la datumoj estos komplete forigitaj je %{date}. Ĝis tiam, la konto povas esti malsuspendita sen flankefiko. Se vi deziras tuj forigi ĉiujn datumojn de la konto, vi povas fari tion sube.
       title: Kontoj
-      trends:
-        allow: Permesi
-        allowed: Permesita
-        disallow: Malpermesi
-        disallowed: Malpermesita
-        title: Aktualaĵoj
       unblock_email: Malbloki retpoŝtadresojn
       unblocked_email_msg: Sukcese malblokis la retpoŝtadreson de %{username}
       unconfirmed_email: Nekonfirmita retpoŝto
@@ -544,6 +518,8 @@ eo:
           description: Vi ricevis registradon de FASP. Malakcepti ĝin se vi ne komencis ĉi tiun. Se vi ja, zorge kompari nomon kaj ŝloŝilafingrospuron antaŭ ol konfirmas la registradon.
           reject: Malakcepti
           title: Konfirmi registradon de FASP
+        save: Konservi
+        select_capabilities: Elekti mandatojn
         sign_in: Ensaluti
         status: Stato
         title: Fediversaj helpaj servicaj donantoj
@@ -863,8 +839,10 @@ eo:
         title: Defaŭltigi, ke uzantoj ne estu aŭtomate aldonitaj al la serĉilo-indekso sen sia konsento
       discovery:
         follow_recommendations: Sekvorekomendoj
+        privacy: Privateco
         profile_directory: Profilujo
         public_timelines: Publikaj templinioj
+        publish_statistics: Publikigi statistikojn
         title: Eltrovado
         trends: Tendencoj
       domain_blocks:
@@ -883,6 +861,7 @@ eo:
         warning_hint: Ni rekomendas uzi "Konsento neprigas por enskribiĝi" krom se vi memcertas, ke via teamo de moderistoj povas ellabori spamon kaj malignajn registradojn rapide.
       security:
         authorized_fetch: Devigi aŭtentigon de frataraj serviloj
+        authorized_fetch_hint: Neprigante aŭtentigon por federataj serviloj permesas pli striktan devigon de ambaŭ uzanto-nivelaj kaj servilo-nivelaj blokoj. Tamen, ĉi tiu uzas pli risurcojn, reduktas la ĝisiradon de viaj respondoj, kaj povas enkonduki aferoj, pri kongruoj. Plu, ĉi tiu ne preventos homojn el alporti viajn afiŝojn kaj uzantojn.
         authorized_fetch_overridden_hint: Vi nuntempe ne povas ŝanĝi ĉi tiun agordon ĉar ĝi estas anstataŭita de mediovariablo.
         federation_authentication: Devigado de la aŭtentigo de la federacio
       title: Agordoj de la servilo
@@ -1062,6 +1041,7 @@ eo:
           one: Diskonita de 1 persono ekde lasta semajno
           other: Diskonita de %{count} personoj ekde lasta semajno
         title: Tendencantaj ligiloj
+        usage_comparison: Diskonita %{today}-foje hodiau, sed estas %{yesterday} hierau
       not_allowed_to_trend: Ne rajtas fariĝi furoraĵo
       only_allowed: Nur permesitas
       pending_review: Atendante revizion
@@ -1106,6 +1086,7 @@ eo:
         trendable: Povas aperi en tendencoj
         trending_rank: 'Populara #%{rank}'
         usable: Povas esti uzata
+        usage_comparison: Uzita %{today}-foje hodiau, sed estas %{yesterday} hierau
         used_by_over_week:
           one: Uzita de 1 persono ekde lasta semajno
           other: Uzita de %{count} personoj ekde lasta semajno
@@ -1132,6 +1113,9 @@ eo:
     warning_presets:
       add_new: Aldoni novan
       delete: Forigi
+      edit_preset: Redakti avertan antaŭagordon
+      empty: Vi ankoraŭ ne difinis iun ajn antaŭagordon de averto.
+      title: Antaŭdifinoj de averto
     webhooks:
       add_new: Aldoni finpunkton
       delete: Forigi
@@ -1199,6 +1183,7 @@ eo:
     remove: Malligili alinomon
   appearance:
     animations_and_accessibility: Animacioj kaj alirebleco
+    discovery: Eltrovo
     localization:
       body: Mastodon estas tradukita de volontuloj.
       guide_link: https://crowdin.com/project/mastodon
@@ -1495,6 +1480,7 @@ eo:
       empty: Malpena CSV-dosiero
       incompatible_type: Nekongrua kun la elektita importotipo
       invalid_csv_file: Nevalida CSV-dosiero. %{error}
+      over_rows_processing_limit: enhavas pli ol %{count} vicoj
       too_large: La dosiero estas tro larĝa
     failures: Malsukcesoj
     imported: Importitaj
@@ -1630,6 +1616,7 @@ eo:
     incoming_migrations_html: Por moviĝi el alia konto al ĉi tiu, vi unue devas <a href="%{path}">krei kromnomo de konto</a>.
     moved_msg: Vua konto nun alidirektas al %{acct} kaj via sekvantoj translokigitas.
     not_redirecting: Via konto ne alidirektas al ajn alia konto nun.
+    on_cooldown: Vi lastatempe translokigis vian konton. Ĝi estos disponebla malantau ol %{count} dioj.
     past_migrations: Pasintaj translokaj
     proceed_with_move: Translokigi sekvantoj
     redirected_msg: Via konto nun alidirektas al %{acct}.
@@ -1785,6 +1772,8 @@ eo:
       account: Publikaj mesaĝoj de @%{acct}
       tag: 'Publikaj afiŝoj pri #%{hashtag}'
   scheduled_statuses:
+    over_daily_limit: Vi transpasis la limigon al %{limit} samtage planitaj mesaĝoj
+    over_total_limit: Vi transpasis la limigon al %{limit} planitaj mesaĝoj
     too_soon: dato devas esti en la futuro
   self_destruct:
     lead_html: Bedaŭrinde, <strong>%{domain}</strong> konstante fermiĝas. Se vi havis konton tie, vi ne povos daŭrigi uzi ĝin, sed vi ankoraŭ povas peti sekurkopion de viaj datumoj.

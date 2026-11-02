@@ -11,9 +11,7 @@ declare module '@storybook/addon-vitest/vitest-plugin' {
 }
 
 type TypedRootState = {
-  [
-    Key in keyof RootState
-  ]?: RootState[Key] extends Immutable.OrderedCollection<any>
+  [Key in keyof RootState]?: RootState[Key] extends Immutable.OrderedCollection<any>
     ? unknown
     : PartialDeep<RootState[Key]>;
 };

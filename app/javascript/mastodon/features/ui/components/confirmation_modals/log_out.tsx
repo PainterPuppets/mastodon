@@ -8,17 +8,14 @@ import type { BaseConfirmationModalProps } from './confirmation_modal';
 import { ConfirmationModal } from './confirmation_modal';
 
 const messages = defineMessages({
-  logoutTitle: {
-    id: 'confirmations.logout.title',
-    defaultMessage: 'Sign out?',
-  },
+  logoutTitle: { id: 'confirmations.logout.title', defaultMessage: 'Log out?' },
   logoutMessage: {
     id: 'confirmations.logout.message',
-    defaultMessage: 'Are you sure you want to sign out?',
+    defaultMessage: 'Are you sure you want to log out?',
   },
   logoutConfirm: {
     id: 'confirmations.logout.confirm',
-    defaultMessage: 'Sign out',
+    defaultMessage: 'Log out',
   },
 });
 

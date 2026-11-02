@@ -7,14 +7,7 @@ import { ComboboxField, ComboboxMenuItem } from './combobox_field';
 interface Fruit {
   id: string;
   name: string;
-  type:
-    | 'citrus'
-    | 'berryish'
-    | 'seedy'
-    | 'stony'
-    | 'longish'
-    | 'chonky'
-    | 'donut-shaped';
+  type: 'citrus' | 'berryish' | 'seedy' | 'stony' | 'longish' | 'chonky';
   disabled?: boolean;
 }
 
@@ -71,11 +64,6 @@ const ComboboxDemo: React.FC<{ withGroups?: boolean }> = ({ withGroups }) => {
     [],
   );
 
-  const getGroupEmptyMessage = useCallback(
-    (groupKey: Fruit['type']) => `There are no ${groupKey} fruits`,
-    [],
-  );
-
   // Don't filter results if an exact match has been entered
   const shouldFilterResults = !items.find((item) => searchValue === item.name);
   const results = shouldFilterResults
@@ -85,10 +73,7 @@ const ComboboxDemo: React.FC<{ withGroups?: boolean }> = ({ withGroups }) => {
     : items;
 
   const groupedResults = withGroups
-    ? {
-        ...Object.groupBy(results, (item) => item.type),
-        'donut-shaped': undefined,
-      }
+    ? Object.groupBy(results, (item) => item.type)
     : results;
 
   return (
@@ -99,7 +84,6 @@ const ComboboxDemo: React.FC<{ withGroups?: boolean }> = ({ withGroups }) => {
       items={groupedResults}
       getItemId={getItemId}
       getIsItemDisabled={getIsItemDisabled}
-      getGroupEmptyMessage={getGroupEmptyMessage}
       onSelectItem={selectFruit}
       renderItem={renderItem}
     />

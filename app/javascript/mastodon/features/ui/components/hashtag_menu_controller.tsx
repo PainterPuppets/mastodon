@@ -4,7 +4,6 @@ import { useIntl, defineMessages } from 'react-intl';
 
 import { useLocation } from 'react-router-dom';
 
-import { useHashtag } from '@/mastodon/hooks/useHashtag';
 import { DropdownMenu } from 'mastodon/components/dropdown_menu';
 import { Popover } from 'mastodon/components/popover';
 import { useIdentity } from 'mastodon/identity_context';
@@ -12,14 +11,6 @@ import type { MenuItem } from 'mastodon/models/dropdown_menu';
 import { useAppSelector } from 'mastodon/store';
 
 const messages = defineMessages({
-  follow: {
-    id: 'hashtag.follow',
-    defaultMessage: 'Follow hashtag',
-  },
-  unfollow: {
-    id: 'hashtag.unfollow',
-    defaultMessage: 'Unfollow hashtag',
-  },
   browseHashtag: {
     id: 'hashtag.browse',
     defaultMessage: 'Browse posts in #{hashtag}',
@@ -54,8 +45,6 @@ export const HashtagMenuController: React.FC = () => {
   const [target, setTarget] = useState<TargetParams | null>(null);
   const { element = null, accountId, hashtag } = target ?? {};
   const open = !!element;
-
-  const { tag, toggleFollow } = useHashtag(hashtag);
 
   const account = useAppSelector((state) =>
     accountId ? state.accounts.get(accountId) : undefined,
@@ -104,41 +93,26 @@ export const HashtagMenuController: React.FC = () => {
   }, []);
 
   const menu = useMemo(() => {
-    if (!tag) {
-      return [];
-    }
-
-    const arr: MenuItem[] = signedIn
-      ? [
-          {
-            text: intl.formatMessage(
-              tag.following ? messages.unfollow : messages.follow,
-            ),
-            action: toggleFollow,
-          },
-        ]
-      : [];
-
-    arr.push(
+    const arr: MenuItem[] = [
       {
         text: intl.formatMessage(messages.browseHashtag, {
-          hashtag: tag.name,
+          hashtag,
         }),
-        to: `/tags/${encodeURIComponent(tag.name)}`,
+        to: `/tags/${hashtag}`,
       },
       {
         text: intl.formatMessage(messages.browseHashtagFromAccount, {
           hashtag,
           name: account?.username,
         }),
-        to: `/@${account?.acct}/tagged/${encodeURIComponent(tag.name)}`,
+        to: `/@${account?.acct}/tagged/${hashtag}`,
       },
-    );
+    ];
 
     if (signedIn) {
       arr.push(null, {
         text: intl.formatMessage(messages.muteHashtag, {
-          hashtag: tag.name,
+          hashtag,
         }),
         href: '/filters',
         dangerous: true,
@@ -146,14 +120,14 @@ export const HashtagMenuController: React.FC = () => {
     }
 
     return arr;
-  }, [tag, intl, toggleFollow, hashtag, account, signedIn]);
+  }, [intl, hashtag, account, signedIn]);
 
   if (!open) {
     return null;
   }
 
   return (
-    <Popover isOpen offset={5} reference={element} onClose={handleClose}>
+    <Popover isOpen={open} offset={5} reference={element} onClose={handleClose}>
       {({ props, placement }) => (
         <div
           {...props}

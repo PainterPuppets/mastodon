@@ -12,7 +12,6 @@ import {
 } from '@/testing/factories';
 
 import { StatusAttachments } from './attachments';
-import { StatusContext } from './hooks';
 import type { AttachmentArgs } from './testing';
 import { attachmentArgTypes, attachmentFactory } from './testing';
 
@@ -27,9 +26,9 @@ const meta = {
   title: 'Components/Status/StatusAttachments',
   render() {
     return (
-      <StatusContext.Provider value={{}}>
-        <StatusAttachments statusId='1' />
-      </StatusContext.Provider>
+      <div style={{ width: 'min(600px, 80vw)' }}>
+        <StatusAttachments statusId='1' contextType='home' />
+      </div>
     );
   },
   args: {
@@ -139,13 +138,6 @@ const meta = {
       };
     },
   },
-  decorators: [
-    (Story) => (
-      <div style={{ width: 'min(600px, 80vw)' }}>
-        <Story />
-      </div>
-    ),
-  ],
 } as Meta<StatusAttachmentsStoryProps>;
 
 export default meta;

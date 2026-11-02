@@ -30,7 +30,7 @@ class OEmbedSerializer < ActiveModel::Serializer
       margin-top: 16px;
     CSS
     div_view: <<~CSS.squish,
-      font-weight: bold;
+      font-weight: 500;
     CSS
   }.freeze
 

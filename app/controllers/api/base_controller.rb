@@ -63,17 +63,16 @@ class Api::BaseController < ApplicationController
   end
 
   def require_user!
-    return render json: { error: 'This method requires an authenticated user' }, status: 422 unless current_user
-
-    case current_user.nonfunctional_reason
-    when nil
-      update_user_sign_in
-    when :pending_confirmation
+    if !current_user
+      render json: { error: 'This method requires an authenticated user' }, status: 422
+    elsif !current_user.confirmed?
       render json: { error: 'Your login is missing a confirmed e-mail address' }, status: 403
-    when :pending_approval
+    elsif !current_user.approved?
       render json: { error: 'Your login is currently pending approval' }, status: 403
-    else
+    elsif !current_user.functional?
       render json: { error: 'Your login is currently disabled' }, status: 403
+    else
+      update_user_sign_in
     end
   end
 

@@ -3,5 +3,3 @@ export { setLocale, getLocale, isLocaleLoaded } from './global_locale';
 export { loadLocale } from './load_locale';
 
 export { IntlProvider } from './intl_provider';
-
-export const VERTICAL_LANG_CODES = ['mn-Mong'];

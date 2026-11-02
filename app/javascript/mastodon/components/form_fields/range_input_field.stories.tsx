@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { fn } from 'storybook/test';
 
 import { RangeInputField } from './range_input_field';
 
@@ -11,7 +10,6 @@ const meta = {
     hint: 'This is a description of this form field',
     checked: false,
     disabled: false,
-    onChange: fn(),
   },
 } satisfies Meta<typeof RangeInputField>;
 

@@ -1,3 +1,5 @@
+import { resolve } from 'node:path';
+
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
 import { playwright } from '@vitest/browser-playwright';
 import {
@@ -9,6 +11,7 @@ import {
 import { config as viteConfig } from './vite.config.mjs';
 
 const storybookTests: TestProjectInlineConfiguration = {
+  extends: true,
   plugins: [
     // See options at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon#storybooktest
     storybookTest({
@@ -28,6 +31,7 @@ const storybookTests: TestProjectInlineConfiguration = {
 };
 
 const legacyTests: TestProjectInlineConfiguration = {
+  extends: true,
   test: {
     name: 'legacy-tests',
     environment: 'jsdom',

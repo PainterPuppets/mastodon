@@ -75,7 +75,7 @@ RSpec.describe 'Admin::Trends::Statuses' do
 
     def check_item
       within '.batch-table__row' do
-        find_field(type: 'checkbox').check
+        find('input[type=checkbox]').check
       end
     end
 

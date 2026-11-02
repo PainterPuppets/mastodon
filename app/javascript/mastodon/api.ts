@@ -4,7 +4,7 @@ import type {
   Method,
   RawAxiosRequestHeaders,
 } from 'axios';
-import { create as createAxiosInstance } from 'axios';
+import axios from 'axios';
 import LinkHeader from 'http-link-header';
 
 import { getAccessToken } from './initial_state';
@@ -90,7 +90,7 @@ const authorizationTokenFromInitialState = (): RawAxiosRequestHeaders => {
 
 // eslint-disable-next-line import/no-default-export
 export default function api(withAuthorization = true) {
-  const instance = createAxiosInstance({
+  const instance = axios.create({
     transitional: {
       clarifyTimeoutError: true,
     },

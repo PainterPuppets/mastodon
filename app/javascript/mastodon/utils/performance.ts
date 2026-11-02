@@ -1,25 +1,19 @@
 //
 // Tools for performance debugging, only enabled in development mode.
+// Open up Chrome Dev Tools, then Timeline, then User Timing to see output.
+
+import * as marky from 'marky';
 
 import { isDevelopment } from './environment';
 
-export function start(name: string): void {
+export function start(name: string) {
   if (isDevelopment()) {
-    performance.mark(`${name}-start`);
+    marky.mark(name);
   }
 }
 
-export function stop(name: string): PerformanceMeasure | undefined {
+export function stop(name: string) {
   if (isDevelopment()) {
-    const startMark = `${name}-start`;
-
-    if (performance.getEntriesByName(startMark, 'mark').length > 0) {
-      const measure = performance.measure(name, startMark);
-      performance.clearMarks(startMark);
-      return measure;
-    }
+    marky.stop(name);
   }
-
-  // For non-development and wrong names
-  return undefined;
 }

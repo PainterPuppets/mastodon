@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
+require 'securerandom'
 
 RSpec.describe Request do
   subject { described_class.new(:get, 'http://example.com', **options) }

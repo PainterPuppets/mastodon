@@ -80,7 +80,7 @@ export const DisabledAccountBanner: React.FC = () => {
       >
         <FormattedMessage
           id='confirmations.logout.confirm'
-          defaultMessage='Sign out'
+          defaultMessage='Log out'
         />
       </button>
     </div>

@@ -5,7 +5,6 @@ import { FormattedMessage, useIntl, defineMessages } from 'react-intl';
 import { isFulfilled } from '@reduxjs/toolkit';
 
 import { Toggle } from '@/mastodon/components/form_fields';
-import { isRedesignEnabled } from '@/mastodon/utils/environment';
 import CloseIcon from '@/material-icons/400-24px/close.svg?react';
 import ListAltIcon from '@/material-icons/400-24px/list_alt.svg?react';
 import { fetchLists } from 'mastodon/actions/lists';
@@ -27,10 +26,6 @@ const messages = defineMessages({
   newList: {
     id: 'lists.new_list_name',
     defaultMessage: 'New list name',
-  },
-  newFeed: {
-    id: 'custom_feeds.new_feed_name',
-    defaultMessage: 'New feed name',
   },
   createList: {
     id: 'lists.create',
@@ -109,9 +104,7 @@ const NewListItem: React.FC<{
           onChange={handleChange}
           maxLength={30}
           required
-          placeholder={intl.formatMessage(
-            isRedesignEnabled() ? messages.newFeed : messages.newList,
-          )}
+          placeholder={intl.formatMessage(messages.newList)}
         />
       </label>
 
@@ -191,19 +184,11 @@ const ListAdder: React.FC<{
         />
 
         <NavigationFocusTarget as='h1' className='dialog-modal__header__title'>
-          {isRedesignEnabled() ? (
-            <FormattedMessage
-              id='custom_feeds.add_to_feeds'
-              defaultMessage='Add {name} to custom feeds'
-              values={{ name: <strong>@{account?.acct}</strong> }}
-            />
-          ) : (
-            <FormattedMessage
-              id='lists.add_to_lists'
-              defaultMessage='Add {name} to lists'
-              values={{ name: <strong>@{account?.acct}</strong> }}
-            />
-          )}
+          <FormattedMessage
+            id='lists.add_to_lists'
+            defaultMessage='Add {name} to lists'
+            values={{ name: <strong>@{account?.acct}</strong> }}
+          />
         </NavigationFocusTarget>
       </div>
 

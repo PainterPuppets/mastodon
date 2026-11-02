@@ -553,7 +553,7 @@ export const Audio: React.FC<{
         />
       )}
 
-      <audio
+      <audio /* eslint-disable-line jsx-a11y/media-has-caption */
         src={src}
         ref={handleAudioRef}
         preload={startPlaying ? 'auto' : 'none'}

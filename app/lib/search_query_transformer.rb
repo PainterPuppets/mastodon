@@ -12,9 +12,6 @@ class SearchQueryTransformer < Parslet::Transform
     in
   ).freeze
 
-  class TransformerError < StandardError; end
-  class QueryError < StandardError; end
-
   class Query
     def initialize(clauses, options = {})
       raise ArgumentError if options[:current_account].nil?
@@ -23,7 +20,6 @@ class SearchQueryTransformer < Parslet::Transform
       @options = options
 
       flags_from_clauses!
-      validate_clauses!
     end
 
     def request
@@ -37,15 +33,6 @@ class SearchQueryTransformer < Parslet::Transform
     end
 
     private
-
-    def validate_clauses!
-      # At least one clause should be a positive match unless searching within the library
-      # `from:me` (or `from:<self>`) is effectively a library-scoped query, so allow it without `in:library`
-      return if @flags['in'] == 'library'
-      return if filter_clauses.any? { |clause| clause.is_a?(PrefixClause) && clause.prefix == 'from' && !clause.negated? && clause.term == @options[:current_account].id }
-
-      raise QueryError, 'At least one keyword or phrase is required' if (must_clauses + filter_clauses).none? { |clause| clause.is_a?(TermClause) && clause.term.present? }
-    end
 
     def clauses_by_operator
       @clauses_by_operator ||= @clauses.compact.group_by(&:operator)
@@ -120,7 +107,7 @@ class SearchQueryTransformer < Parslet::Transform
         when '-'
           :must_not
         else
-          raise TransformerError, "Unknown operator: #{str}"
+          raise "Unknown operator: #{str}"
         end
       end
     end
@@ -143,9 +130,16 @@ class SearchQueryTransformer < Parslet::Transform
     end
   end
 
-  class PhraseClause < TermClause
+  class PhraseClause
+    attr_reader :operator, :phrase
+
+    def initialize(operator, phrase)
+      @operator = Operator.symbol(operator)
+      @phrase = phrase
+    end
+
     def to_query
-      { match_phrase: { text: { query: @term } } }
+      { match_phrase: { text: { query: @phrase } } }
     end
   end
 
@@ -189,7 +183,7 @@ class SearchQueryTransformer < Parslet::Transform
         @operator = :flag
         @term = term
       else
-        raise TransformerError, "Unknown prefix: #{prefix}"
+        raise "Unknown prefix: #{prefix}"
       end
     end
 
@@ -199,10 +193,6 @@ class SearchQueryTransformer < Parslet::Transform
       else
         { @type => { @filter => @term } }
       end
-    end
-
-    def negated?
-      @negated
     end
 
     private
@@ -255,7 +245,7 @@ class SearchQueryTransformer < Parslet::Transform
     elsif clause[:phrase]
       PhraseClause.new(operator, term)
     else
-      raise TransformerError, "Unexpected clause type: #{clause}"
+      raise "Unexpected clause type: #{clause}"
     end
   end
 

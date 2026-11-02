@@ -4,11 +4,11 @@ module DeprecationConcern
   extend ActiveSupport::Concern
 
   class_methods do
-    def deprecate_api(date, sunset: nil, **)
+    def deprecate_api(date, sunset: nil, **kwargs)
       deprecation_timestamp = "@#{date.to_datetime.to_i}"
       sunset = sunset&.to_date&.httpdate
 
-      before_action(**) do
+      before_action(**kwargs) do
         response.headers['Deprecation'] = deprecation_timestamp
         response.headers['Sunset'] = sunset if sunset
 

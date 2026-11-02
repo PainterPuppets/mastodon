@@ -443,31 +443,32 @@ export function unpinFail(status, error) {
   };
 }
 
-function toggleReblogWithoutConfirmation(statusId, visibility) {
-  return (dispatch, getState) => {
-    const status = getState().statuses.get(statusId);
-
+function toggleReblogWithoutConfirmation(status, visibility) {
+  return (dispatch) => {
     if (status.get('reblogged')) {
-      dispatch(unreblog({ statusId }));
+      dispatch(unreblog({ statusId: status.get('id') }));
     } else {
-      dispatch(reblog({ statusId, visibility }));
+      dispatch(reblog({ statusId: status.get('id'), visibility }));
     }
   };
 }
 
 export function toggleReblog(statusId, skipModal = false) {
-  return (dispatch) => {
+  return (dispatch, getState) => {
+    const state = getState();
+    let status = state.statuses.get(statusId);
+
+    if (!status)
+      return;
+
+    // The reblog modal expects a pre-filled account in status
+    // TODO: fix this by having the reblog modal get a statusId and do the work itself
+    status = status.set('account', state.accounts.get(status.get('account')));
 
     if (boostModal && !skipModal) {
-      dispatch(openModal({
-        modalType: 'BOOST',
-        modalProps: {
-          statusId,
-          onReblog: (privacy) => dispatch(toggleReblogWithoutConfirmation(statusId, privacy))
-        },
-      }));
+      dispatch(openModal({ modalType: 'BOOST', modalProps: { status, onReblog: (status, privacy) => dispatch(toggleReblogWithoutConfirmation(status, privacy)) } }));
     } else {
-      dispatch(toggleReblogWithoutConfirmation(statusId));
+      dispatch(toggleReblogWithoutConfirmation(status));
     }
   };
 }

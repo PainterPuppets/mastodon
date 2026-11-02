@@ -23,17 +23,15 @@ export const LinkFooter: React.FC<{
       <section>
         <h2 className={classes.heading}>{`${domain}:`}</h2>
         <ul className={classes.list}>
-          {context !== 'about' && (
-            <li>
-              <Link to='/about' target={multiColumn ? '_blank' : undefined}>
-                <FormattedMessage
-                  id='footer.about_this_server'
-                  defaultMessage='About'
-                />
-                <span className='sr-only'> {domain}</span>
-              </Link>
-            </li>
-          )}
+          <li>
+            <Link to='/about' target={multiColumn ? '_blank' : undefined}>
+              <FormattedMessage
+                id='footer.about_this_server'
+                defaultMessage='About'
+              />
+              <span className='sr-only'> {domain}</span>
+            </Link>
+          </li>
           {statusPageUrl && (
             <li>
               <a href={statusPageUrl} target='_blank' rel='noopener'>
@@ -112,7 +110,7 @@ export const LinkFooter: React.FC<{
             <a href={source_url} rel='noopener' target='_blank'>
               <FormattedMessage
                 id='footer.source_code'
-                defaultMessage='Source Code'
+                defaultMessage='View source code'
               />
             </a>
           </li>

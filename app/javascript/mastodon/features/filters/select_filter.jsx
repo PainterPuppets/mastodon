@@ -5,7 +5,7 @@ import { defineMessages, FormattedMessage } from 'react-intl';
 
 import { connect } from 'react-redux';
 
-import { go as fuzzysortGo } from 'fuzzysort';
+import fuzzysort from 'fuzzysort';
 
 import AddIcon from '@/material-icons/400-24px/add.svg?react';
 import { Icon }  from 'mastodon/components/icon';
@@ -50,7 +50,7 @@ class SelectFilter extends PureComponent {
       return filters;
     }
 
-    return fuzzysortGo(searchValue, filters, {
+    return fuzzysort.go(searchValue, filters, {
       keys: ['1', '2'],
       limit: 5,
       threshold: -10000,

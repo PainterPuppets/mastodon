@@ -12,10 +12,8 @@
     }
   }
 
-  :any-link,
-  button {
+  :any-link {
     color: var(--color-text-status-links);
-    text-decoration: underline;
 
     &:hover {
       text-decoration: none;

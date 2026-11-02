@@ -1,5 +1,3 @@
-import type React from 'react';
-
 import classNames from 'classnames';
 
 import logo from '@/images/logo.svg';
@@ -11,18 +9,13 @@ export const WordmarkLogo: React.FC = () => (
   </svg>
 );
 
-export const IconLogo: React.FC<React.ComponentPropsWithRef<'svg'>> = ({
-  className,
-  role = 'img',
-  ...otherProps
-}) => (
+export const IconLogo: React.FC<{ className?: string }> = ({ className }) => (
   <svg
     viewBox='0 0 79 79'
     className={classNames('logo logo--icon', className)}
-    role={role}
-    {...otherProps}
+    role='img'
   >
-    {role !== 'presentation' && <title>Mastodon</title>}
+    <title>Mastodon</title>
     <use xlinkHref='#logo-symbol-icon' />
   </svg>
 );

@@ -17,7 +17,6 @@ export interface ApiAnnouncementJSON {
   tags: ApiTagJSON[];
   emojis: ApiCustomEmojiJSON[];
   reactions: ApiAnnouncementReactionJSON[];
-  reactions_allowed: boolean;
 }
 
 export interface ApiAnnouncementReactionJSON {

@@ -13,8 +13,6 @@ import {
   ANNOUNCEMENTS_TOGGLE_SHOW,
   ANNOUNCEMENTS_DELETE,
   ANNOUNCEMENTS_DISMISS_SUCCESS,
-  ANNOUNCEMENTS_SHOW,
-  ANNOUNCEMENTS_HIDE,
 } from '../actions/announcements';
 
 const initialState = ImmutableMap({
@@ -66,10 +64,6 @@ export default function announcementsReducer(state = initialState, action) {
     return state.withMutations(map => {
       map.set('show', !map.get('show'));
     });
-  case ANNOUNCEMENTS_SHOW:
-    return state.set('show', true);
-  case ANNOUNCEMENTS_HIDE:
-    return state.set('show', false);
   case ANNOUNCEMENTS_FETCH_REQUEST:
     return state.set('isLoading', true);
   case ANNOUNCEMENTS_FETCH_SUCCESS:

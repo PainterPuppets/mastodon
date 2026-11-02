@@ -7,17 +7,14 @@ import { useHistory } from 'react-router-dom';
 
 import { Helmet } from '@unhead/react/helmet';
 
-import { Button } from '@/mastodon/components/button/redesign';
-import { Column } from '@/mastodon/components/column';
-import { ColumnHeader as LegacyColumnHeader } from '@/mastodon/components/column/header';
-import { ColumnHeader } from '@/mastodon/components/column_header';
-import { isRedesignEnabled } from '@/mastodon/utils/environment';
 import AddPhotoAlternateIcon from '@/material-icons/400-24px/add_photo_alternate.svg?react';
 import EditIcon from '@/material-icons/400-24px/edit.svg?react';
 import PersonIcon from '@/material-icons/400-24px/person.svg?react';
 import { updateAccount } from 'mastodon/actions/accounts';
 import { closeOnboarding } from 'mastodon/actions/onboarding';
-import { Button as LegacyButton } from 'mastodon/components/button';
+import { Button } from 'mastodon/components/button';
+import { Column } from 'mastodon/components/column';
+import { ColumnHeader } from 'mastodon/components/column_header';
 import {
   TextAreaField,
   TextInputField,
@@ -166,20 +163,13 @@ export const Profile: React.FC<{
       bindToDocument={!multiColumn}
       label={intl.formatMessage(messages.title)}
     >
-      {isRedesignEnabled() ? (
-        <ColumnHeader
-          withBackButton
-          title={intl.formatMessage(messages.title)}
-        />
-      ) : (
-        <LegacyColumnHeader
-          title={intl.formatMessage(messages.title)}
-          icon='person'
-          iconComponent={PersonIcon}
-          multiColumn={multiColumn}
-          showBackButton
-        />
-      )}
+      <ColumnHeader
+        title={intl.formatMessage(messages.title)}
+        icon='person'
+        iconComponent={PersonIcon}
+        multiColumn={multiColumn}
+        showBackButton
+      />
 
       <div className='scrollable scrollable--flex'>
         <div className='simple_form app-form'>
@@ -311,30 +301,16 @@ export const Profile: React.FC<{
         <div className='spacer' />
 
         <div className='column-footer'>
-          {isRedesignEnabled() ? (
-            <Button
-              variant='solid'
-              color='accent'
-              onClick={handleSubmit}
-              loading={isSaving}
-            >
+          <Button block onClick={handleSubmit} disabled={isSaving}>
+            {isSaving ? (
+              <LoadingIndicator />
+            ) : (
               <FormattedMessage
                 id='onboarding.profile.finish'
                 defaultMessage='Finish'
               />
-            </Button>
-          ) : (
-            <LegacyButton block onClick={handleSubmit} disabled={isSaving}>
-              {isSaving ? (
-                <LoadingIndicator />
-              ) : (
-                <FormattedMessage
-                  id='onboarding.profile.finish'
-                  defaultMessage='Finish'
-                />
-              )}
-            </LegacyButton>
-          )}
+            )}
+          </Button>
         </div>
       </div>
 

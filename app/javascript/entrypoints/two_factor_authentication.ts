@@ -3,6 +3,8 @@ import axios, { AxiosError } from 'axios';
 
 import ready from '../mastodon/ready';
 
+import 'regenerator-runtime/runtime';
+
 type PublicKeyCredentialCreationOptionsJSON =
   WebAuthnJSON.CredentialCreationOptionsJSON['publicKey'];
 

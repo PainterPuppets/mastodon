@@ -15,7 +15,6 @@ export const AuthorLink: FC<{ accountId: string }> = ({ accountId }) => {
     <LinkedDisplayName
       displayProps={{ account, variant: 'simple' }}
       className='story__details__shared__author-link'
-      reference='author_attribution'
     >
       <Avatar account={account} size={16} />
     </LinkedDisplayName>

@@ -1,5 +1,6 @@
 import { pino } from 'pino';
 import { pinoHttp, stdSerializers as pinoHttpSerializers } from 'pino-http';
+import * as uuid from 'uuid';
 
 /**
  * Generates the Request ID for logging and setting on responses
@@ -12,7 +13,7 @@ function generateRequestId(req, res) {
     return req.id;
   }
 
-  req.id = crypto.randomUUID();
+  req.id = uuid.v4();
 
   // Allow for usage with WebSockets:
   if (res) {

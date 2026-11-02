@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { fn } from 'storybook/test';
 
 import { Fieldset } from './fieldset';
 import { RadioButton, RadioButtonField } from './radio_button_field';
@@ -12,7 +11,6 @@ const meta = {
     hint: 'This is a description of this form field',
     checked: false,
     disabled: false,
-    onChange: fn(),
   },
   argTypes: {
     size: {

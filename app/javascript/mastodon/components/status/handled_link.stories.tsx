@@ -49,9 +49,7 @@ const meta = {
     mentionAccount: {
       control: { type: 'select' },
       options: ['local', 'remote', 'none'],
-      table: {
-        defaultValue: { summary: 'none' },
-      },
+      defaultValue: 'none',
     },
   },
   parameters: {

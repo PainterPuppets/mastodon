@@ -5,9 +5,8 @@ import { defineMessages, useIntl, FormattedMessage } from 'react-intl';
 import classNames from 'classnames';
 import { Link } from 'react-router-dom';
 
-import { DotsThreeIcon } from '@phosphor-icons/react';
-
 import { EmojiHTML } from '@/mastodon/components/emoji/html';
+import MoreHorizIcon from '@/material-icons/400-24px/more_horiz.svg?react';
 import {
   blockAccount,
   unblockAccount,
@@ -23,8 +22,10 @@ import { initMuteModal } from 'mastodon/actions/mutes';
 import { apiFollowAccount } from 'mastodon/api/accounts';
 import { Avatar } from 'mastodon/components/avatar';
 import { VerifiedBadge } from 'mastodon/components/badge';
+import { Button } from 'mastodon/components/button';
 import { FollowersCounter } from 'mastodon/components/counters';
 import { DisplayName } from 'mastodon/components/display_name';
+import { Dropdown } from 'mastodon/components/dropdown_menu';
 import { FollowButton } from 'mastodon/components/follow_button';
 import { RelativeTimestamp } from 'mastodon/components/relative_timestamp';
 import { ShortNumber } from 'mastodon/components/short_number';
@@ -33,9 +34,6 @@ import { useIdentity } from 'mastodon/identity_context';
 import { me } from 'mastodon/initial_state';
 import type { MenuItem } from 'mastodon/models/dropdown_menu';
 import { useAppSelector, useAppDispatch } from 'mastodon/store';
-
-import { IconButton, Button } from '../button/redesign';
-import { LegacyDropdownMenuItems, Menu, MenuList, MenuTrigger } from '../menu';
 
 const messages = defineMessages({
   follow: { id: 'account.follow', defaultMessage: 'Follow' },
@@ -79,7 +77,6 @@ interface AccountProps {
   extraAccountInfo?: React.ReactNode;
   className?: string;
   children?: React.ReactNode;
-  reference?: string;
 }
 
 export const Account: React.FC<AccountProps> = ({
@@ -94,7 +91,6 @@ export const Account: React.FC<AccountProps> = ({
   extraAccountInfo,
   className,
   children,
-  reference,
 }) => {
   const intl = useIntl();
   const { signedIn } = useIdentity();
@@ -173,7 +169,7 @@ export const Account: React.FC<AccountProps> = ({
                 modalProps: {
                   accountId: id,
                   onConfirm: () => {
-                    apiFollowAccount(id, { ref: reference })
+                    apiFollowAccount(id)
                       .then((relationship) => {
                         dispatch(
                           followAccountSuccess({
@@ -229,7 +225,6 @@ export const Account: React.FC<AccountProps> = ({
     defaultAction,
     isRemote,
     signedIn,
-    reference,
   ]);
 
   if (hidden) {
@@ -246,35 +241,35 @@ export const Account: React.FC<AccountProps> = ({
 
   if (menu.length > 0 && withMenu) {
     dropdown = (
-      <Menu>
-        <MenuTrigger as={IconButton} icon={DotsThreeIcon} size='sm'>
-          {intl.formatMessage(messages.more)}
-        </MenuTrigger>
-        <MenuList>
-          <LegacyDropdownMenuItems items={menu} />
-        </MenuList>
-      </Menu>
+      <Dropdown
+        items={menu}
+        icon='ellipsis-h'
+        iconComponent={MoreHorizIcon}
+        title={intl.formatMessage(messages.more)}
+      />
     );
   }
 
   if (defaultAction === 'block') {
     button = (
-      <Button onClick={handleBlock} size='sm'>
-        {intl.formatMessage(
+      <Button
+        text={intl.formatMessage(
           relationship?.blocking ? messages.unblock : messages.block,
         )}
-      </Button>
+        onClick={handleBlock}
+      />
     );
   } else if (defaultAction === 'mute') {
     button = (
-      <Button onClick={handleMute} size='sm'>
-        {intl.formatMessage(
+      <Button
+        text={intl.formatMessage(
           relationship?.muting ? messages.unmute : messages.mute,
         )}
-      </Button>
+        onClick={handleMute}
+      />
     );
   } else {
-    button = <FollowButton accountId={id} reference={reference} size='sm' />;
+    button = <FollowButton accountId={id} />;
   }
 
   let muteTimeRemaining: React.ReactNode;
@@ -292,16 +287,7 @@ export const Account: React.FC<AccountProps> = ({
   const firstVerifiedField = account?.fields.find((item) => !!item.verified_at);
 
   if (firstVerifiedField) {
-    verification = (
-      <VerifiedBadge
-        link={
-          // Uses the plain value to avoid nested links, and strips the protocol to make it consistent with
-          // HTML-based field display.
-          firstVerifiedField.value_plain?.replace('https://', '') ??
-          firstVerifiedField.value
-        }
-      />
-    );
+    verification = <VerifiedBadge link={firstVerifiedField.value} />;
   }
 
   return (
@@ -320,9 +306,8 @@ export const Account: React.FC<AccountProps> = ({
           <Link
             className='account__display-name focusable'
             title={account?.acct}
-            to={{ pathname: `/@${account?.acct}`, state: { reference } }}
+            to={`/@${account?.acct}`}
             data-hover-card-account={id}
-            data-hover-card-reference={reference}
           >
             <div className='account__avatar-wrapper'>
               {account ? (

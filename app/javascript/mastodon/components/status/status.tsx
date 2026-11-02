@@ -1,75 +1,52 @@
-import { useCallback, useId, useMemo, useState } from 'react';
+import type React from 'react';
+import { useCallback, useMemo } from 'react';
 
 import classNames from 'classnames';
 
 import type { Merge } from 'type-fest';
 
-import type { ExpandedStatusShape } from '@/mastodon/models/status';
-import { selectStatusLoadingState } from '@/mastodon/selectors/statuses';
+import { selectPlainAccount } from '@/mastodon/selectors/accounts';
+import { selectStatusFilters } from '@/mastodon/selectors/filters';
+import { selectExpandedStatus } from '@/mastodon/selectors/statuses';
 import { createAppSelector, useAppSelector } from '@/mastodon/store';
 
-import type {
-  HotkeyHandlerFunction,
-  HotkeyHandlerMap,
-  HotkeyName,
-} from '../hotkeys';
+import { ContentWarning } from '../content_warning';
+import { FilterWarning } from '../filter_warning';
+import { computeHashtagBarForStatus, HashtagBar } from '../hashtag_bar';
 import { Hotkeys } from '../hotkeys';
-import { Poll } from '../poll';
 
 import { StatusActionBar } from './action_bar';
 import { StatusAttachments } from './attachments';
 import { StatusContent } from './content';
-import { StatusHashtagBar } from './hashtag_bar';
-import { StatusRedesignHeader } from './header';
-import {
-  StatusContext,
-  useStatusContext,
-  useStatusHandlers,
-  useTextForScreenReader,
-} from './hooks';
-import { computeHashtagBarForStatus } from './legacy/hashtag_bar';
-import { StatusMeta } from './meta';
+import { StatusHeader } from './header';
+import type { StatusHandlers } from './hooks';
+import { useStatusHandlers, useTextForScreenReader } from './hooks';
 import { StatusPrepend } from './prepend';
-import { StatusQuote } from './quote';
-import classes from './styles.module.scss';
-import { TranslateButton } from './translate';
 import type { StatusContainerProps, StatusContextType } from './types';
-import { StatusWarning } from './warning';
 
 type StatusRedesignProps = Merge<
   Omit<StatusContainerProps, 'account'>,
   {
     accountId?: string;
     contextType?: StatusContextType;
-    variant?: StatusVariant;
+    onClick?: () => void;
   }
 >;
 
-export type StatusVariant = 'feed' | 'thread' | 'page';
-
 const selectStatusReblog = createAppSelector(
-  [
-    (
-      state,
-      {
-        statusId,
-        contextType,
-      }: { statusId?: string | null; contextType?: StatusContextType },
-    ) => selectStatusLoadingState(state, { statusId, contextType }),
-  ],
-  ({ status, state }) => {
+  [(state, id?: string | null) => selectExpandedStatus(state, id ?? undefined)],
+  (status) => {
     if (!status) {
-      return { state };
+      return {};
     }
     if (!status.reblog) {
-      return { status, state };
+      return { status };
     }
 
     const { reblog, ...statusRest } = status;
     return {
       status: reblog,
       parent: statusRest,
-      state,
     };
   },
 );
@@ -77,25 +54,38 @@ const selectStatusReblog = createAppSelector(
 export const StatusRedesign: React.FC<StatusRedesignProps> = ({
   id,
   muted,
+  rootId,
+  previousId,
+  nextId,
+  unread,
   skipPrepend,
   unfocusable,
   contextType,
   featured,
   isQuotedPost,
+  accountId,
   hidden,
-  showActions = true,
-  children,
-  withCounters = true,
-  withDismiss,
-  onOpen,
-  showThread,
   shouldHighlightOnMount,
-  variant = contextToVariant(contextType),
-  nextId,
+  showActions,
+  scrollKey,
+  children,
+  headerRenderFn,
+  avatarSize,
+  withCounters,
+  withDismiss,
+  onClick,
+  showThread,
 }) => {
   // Select data from store
   const { status, parent } = useAppSelector((state) =>
-    selectStatusReblog(state, { statusId: id, contextType }),
+    selectStatusReblog(state, id),
+  );
+  const account = useAppSelector(
+    (state) =>
+      parent?.account ?? selectPlainAccount(state, accountId) ?? undefined,
+  );
+  const matchedFilters = useAppSelector((state) =>
+    selectStatusFilters(state, { contextType, statusId: parent?.id ?? id }),
   );
   const statusId = status?.id;
 
@@ -105,228 +95,206 @@ export const StatusRedesign: React.FC<StatusRedesignProps> = ({
     reblogAcct: parent?.account.acct,
     isQuote: isQuotedPost,
   });
-  const { statusContent, hashtagsInBar = [] } = useMemo(
+  const { statusContent, hashtagsInBar } = useMemo(
     (): Partial<ReturnType<typeof computeHashtagBarForStatus>> =>
       status ? computeHashtagBarForStatus(status) : {},
     [status],
   );
-  const contentWrapperId = useId();
-
-  const isNextReplyingToMe = useAppSelector(
-    (state) => state.statuses.getIn([nextId, 'in_reply_to_id']) === statusId,
-  );
 
   // Handlers
   const {
-    isFiltered,
     showDespiteFilter,
+    onHeaderClick,
+    onExpandedToggle,
     onFilterToggle,
-    onTranslate,
-    onOpenCallback,
     onOpenClick,
-  } = useStatusHandlers({
-    status,
-    contextType,
-    onOpen,
-  });
-
-  const [hotkeyHandlers, setHotkeyHandlers] = useState<HotkeyHandlerMap>({});
-  const registerHotkey = useCallback(
-    (hotkey: HotkeyName, handler: HotkeyHandlerFunction) => {
-      setHotkeyHandlers((prev) => ({ ...prev, [hotkey]: handler }));
-    },
-    [],
-  );
+    onTranslate,
+    ...handlers
+  } = useStatusHandlers({ status, contextType, onClick });
 
   if (!status) {
     return null; // loading state
   }
 
+  const actualStatus = parent ?? status;
+
+  const expanded =
+    (matchedFilters.length === 0 || showDespiteFilter) &&
+    (!status.hidden || !status.spoiler_text);
+
   const hotkeysProps = {
-    status,
-    onOpen,
+    ...handlers,
+    onTranslate,
     muted,
     unfocusable,
-    'data-id': id,
-    'data-variant': variant,
-    handlers: hotkeyHandlers,
-  };
-
-  const isHidden =
-    (!showDespiteFilter && isFiltered) ||
-    (!!status.spoiler_text && status.hidden);
+  } satisfies Omit<React.ComponentProps<typeof StatusHotkeys>, 'children'>;
 
   if (hidden) {
     return (
-      <StatusHotkeys
-        {...hotkeysProps}
-        className={classNames(!muted && 'focusable')}
-      >
-        <span>{status.account.display_name || status.account.username}</span>
-        {status.spoiler_text && <span>{status.spoiler_text}</span>}
-        {!isHidden && <span>{status.content}</span>}
+      <StatusHotkeys {...hotkeysProps}>
+        <div
+          className={classNames('status__wrapper', { focusable: !muted })}
+          tabIndex={unfocusable ? undefined : 0}
+        >
+          <span>{status.account.display_name || status.account.username}</span>
+          {status.spoiler_text && <span>{status.spoiler_text}</span>}
+          {expanded && <span>{status.content}</span>}
+        </div>
       </StatusHotkeys>
     );
   }
 
+  const header = headerRenderFn ? (
+    headerRenderFn({
+      statusId: status.id,
+      account,
+      avatarSize,
+      onHeaderClick,
+      featured,
+    })
+  ) : (
+    <StatusHeader
+      statusId={status.id}
+      account={account}
+      avatarSize={avatarSize}
+      onHeaderClick={onHeaderClick}
+    />
+  );
+
   return (
-    <StatusContext.Provider
-      value={{ id, contextType, registerHotkeyCallback: registerHotkey }}
-    >
-      <StatusHotkeys
-        {...hotkeysProps}
-        onClick={onOpenClick}
-        onAuxClick={onOpenClick}
+    <StatusHotkeys {...hotkeysProps}>
+      <div
         className={classNames(
-          classes.root,
-          variant === 'feed' && classes.variantFeed,
-          variant === 'thread' && classes.variantThread,
-          variant === 'page' && classes.variantPage,
-          isQuotedPost && classes.isQuote,
-          shouldHighlightOnMount && classes.isHighlighted,
-          status.visibility === 'direct' && classes.isMessage,
-          !muted && 'focusable',
+          'status__wrapper',
+          `status__wrapper-${status.visibility}`,
+          {
+            'status__wrapper-reply': !!status.in_reply_to_id,
+            'status__wrapper--in-thread': !!rootId,
+            unread,
+            focusable: !muted,
+          },
         )}
-        tabIndex={unfocusable ? undefined : -1}
+        tabIndex={muted || unfocusable ? undefined : 0}
         data-featured={featured ? 'true' : null}
         aria-label={screenReaderText}
         data-nosnippet={status.account.noindex || undefined}
-        data-connect-next={nextId ? isNextReplyingToMe : undefined}
       >
         {!skipPrepend && (
           <StatusPrepend
-            status={status}
-            reblogId={parent?.id}
+            status={actualStatus}
+            isReblog={!!parent}
             showThread={showThread}
           />
         )}
-
-        <StatusRedesignHeader status={status} featured={featured} />
-
-        <div
-          className={classNames(
-            classes.mainWrapper,
-            variant === 'thread' &&
-              isNextReplyingToMe &&
-              !showThread &&
-              classes.connectNextReply,
-          )}
+        <StatusContentWrapper
+          statusId={status.id}
+          inReplyToId={actualStatus.in_reply_to_id}
+          rootId={rootId}
+          nextId={nextId}
+          previousId={previousId}
+          className={classNames(`status-${status.visibility}`, {
+            muted,
+            'status--is-quote': isQuotedPost,
+            'status--has-quote': !!status.quote,
+            'status--highlighted-entry': shouldHighlightOnMount,
+          })}
         >
-          <TranslateButton status={status} onTranslate={onTranslate} />
+          {header}
 
-          <StatusWarning
-            statusId={status.id}
-            dismissedFilter={showDespiteFilter}
-            onFilterToggle={onFilterToggle}
-            wrapperId={contentWrapperId}
-          />
+          {matchedFilters.length > 0 && (
+            <FilterWarning
+              title={matchedFilters.map((filter) => filter.title).join(', ')}
+              expanded={showDespiteFilter}
+              onClick={onFilterToggle}
+            />
+          )}
 
-          <div
-            className={classNames(
-              classes.contentWrapper,
-              classes.contentWarningBlur,
-              isHidden && classes.contentWarningBlurActive,
-              !showDespiteFilter && isFiltered && classes.isFiltered,
-            )}
-            id={contentWrapperId}
-            inert={isHidden}
-          >
-            <StatusContent
-              status={status}
-              statusContent={statusContent}
-              onReadMore={onOpenCallback}
-              onTranslate={onTranslate}
-              collapsible={variant !== 'page'}
-            >
-              {!!status.poll && (
-                <Poll
-                  pollId={status.poll}
-                  statusUrl={status.uri}
+          {(matchedFilters.length === 0 || showDespiteFilter) && (
+            <ContentWarning
+              statusId={status.id}
+              expanded={expanded}
+              onClick={onExpandedToggle}
+            />
+          )}
+
+          {expanded && (
+            <>
+              <StatusContent
+                statusId={status.id}
+                statusContent={statusContent}
+                onClick={onOpenClick}
+                onTranslate={onTranslate}
+                collapsible
+              />
+
+              <StatusAttachments
+                statusId={status.id}
+                contextType={contextType}
+              />
+
+              {hashtagsInBar && (
+                <HashtagBar
+                  hashtags={hashtagsInBar}
                   accountId={status.account.id}
-                  lang={status.translation?.language ?? status.language}
                 />
-              )}
-
-              <StatusAttachments statusId={status.id} />
-
-              {status.quote && (
-                <StatusQuote {...status.quote} parentId={status.id} />
               )}
 
               {children}
-            </StatusContent>
-
-            <StatusHashtagBar
-              hashtags={hashtagsInBar}
-              accountId={status.account.id}
-            />
-          </div>
-
-          {(variant === 'page' || (showActions && !isQuotedPost)) && (
-            <footer className={classes.footer}>
-              {showActions && !isQuotedPost && (
-                <StatusActionBar
-                  statusId={status.id}
-                  reblogId={parent?.id}
-                  withDismiss={withDismiss}
-                  withCounters={withCounters}
-                />
-              )}
-
-              {variant === 'page' && <StatusMeta status={status} />}
-            </footer>
+            </>
           )}
-        </div>
-      </StatusHotkeys>
-    </StatusContext.Provider>
+
+          {showActions && !isQuotedPost && (
+            <StatusActionBar
+              scrollKey={scrollKey}
+              statusId={status.id}
+              contextType={contextType}
+              withDismiss={withDismiss}
+              withCounters={withCounters}
+            />
+          )}
+        </StatusContentWrapper>
+      </div>
+    </StatusHotkeys>
   );
 };
 
-interface StatusHotkeysProps {
-  children: React.ReactNode;
-  status: ExpandedStatusShape;
-  handlers: HotkeyHandlerMap;
-  onOpen?: () => void;
-  muted?: boolean;
-  unfocusable?: boolean;
-}
-
-const StatusHotkeys = ({
-  children,
-  status,
-  onOpen,
-  muted,
-  unfocusable,
-  handlers: registeredHandlers,
-  ...props
-}: StatusHotkeysProps & React.ComponentPropsWithoutRef<'article'>) => {
-  const { contextType } = useStatusContext();
-  const handlers = useStatusHandlers({
-    status,
-    contextType,
-    onOpen,
-  });
+const StatusHotkeys: React.FC<
+  {
+    muted?: boolean;
+    unfocusable?: boolean;
+    children: React.ReactNode;
+  } & Omit<
+    StatusHandlers,
+    | 'showDespiteFilter'
+    | 'onOpenClick'
+    | 'onHeaderClick'
+    | 'onExpandedToggle'
+    | 'onFilterToggle'
+  >
+> = ({ muted, unfocusable, children, ...handlers }) => {
+  const onOpen = useCallback(() => {
+    handlers.onOpen();
+  }, [handlers]);
 
   if (muted) {
-    return <article {...props}>{children}</article>;
+    return children;
   }
 
   return (
     <Hotkeys
-      {...props}
-      as='article'
       handlers={{
         reply: handlers.onReply,
         favourite: handlers.onFavourite,
         boost: handlers.onBoost,
         quote: handlers.onQuote,
         mention: handlers.onMention,
-        open: handlers.onOpenCallback,
+        open: onOpen,
         openProfile: handlers.onOpenProfile,
         toggleHidden: handlers.onToggleHidden,
+        // TODO: This is handled in a child component, so needs to be fixed.
+        // toggleSensitive: onMediaShowToggle,
         openMedia: handlers.onOpenMedia,
         onTranslate: handlers.onTranslate,
-        ...registeredHandlers,
       }}
       focusable={!unfocusable}
     >
@@ -335,16 +303,51 @@ const StatusHotkeys = ({
   );
 };
 
-function contextToVariant(contextType?: StatusContextType): StatusVariant {
-  switch (contextType) {
-    case 'composer':
-    case 'detailed':
-      return 'page';
-    case 'thread':
-      return 'thread';
-    case 'notifications':
-    case undefined:
-    default:
-      return 'feed';
+const StatusContentWrapper: React.FC<
+  Pick<StatusRedesignProps, 'rootId' | 'previousId' | 'nextId' | 'children'> & {
+    statusId: string;
+    inReplyToId?: string;
+    className?: string;
   }
-}
+> = ({
+  statusId,
+  inReplyToId,
+  rootId,
+  previousId,
+  nextId,
+  className,
+  children,
+}) => {
+  const nextInReplyToId = useAppSelector((state) =>
+    nextId ? state.statuses.getIn([nextId, 'in_reply_to_id']) : null,
+  );
+  const connectUp = !!previousId && previousId === inReplyToId;
+  const connectToRoot = !!rootId && rootId === inReplyToId;
+  const connectReply = !!nextInReplyToId && nextInReplyToId === statusId;
+  return (
+    <div
+      className={classNames(
+        'status',
+        {
+          'status-reply': !!inReplyToId,
+          'status--in-thread': !!rootId,
+          'status--first-in-thread':
+            previousId && (!connectUp || connectToRoot),
+        },
+        className,
+      )}
+      data-id={statusId}
+    >
+      {(connectReply || connectUp || connectToRoot) && (
+        <div
+          className={classNames('status__line', {
+            'status__line--full': connectReply,
+            'status__line--first': !inReplyToId && !connectToRoot,
+          })}
+        />
+      )}
+
+      {children}
+    </div>
+  );
+};

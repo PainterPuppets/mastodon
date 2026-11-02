@@ -8,8 +8,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 
 import type { Preview } from '@storybook/react-vite';
-import { mswLoader } from 'msw-storybook-addon/csf3';
-import { setupWorker } from 'msw/browser';
+import { initialize, mswLoader } from 'msw-storybook-addon';
 import { action } from 'storybook/actions';
 
 import {
@@ -21,21 +20,21 @@ import { IdentityContext } from '@/mastodon/identity_context';
 import type { LocaleData } from '@/mastodon/locales';
 import { reducerWithInitialState } from '@/mastodon/reducers';
 import { defaultMiddleware } from '@/mastodon/store/store';
-import { mockHandlers, unhandledFrameHandler } from '@/testing/api';
+import { mockHandlers, unhandledRequestHandler } from '@/testing/api';
 
 import { modes } from './modes';
 
 import '../app/javascript/styles/application.scss';
 import './styles.css';
 
-const startMsw = mswLoader(async () => {
-  const worker = setupWorker();
+// Disabling locales in Storybook as it's breaking with Vite 8.
+// const localeFiles = import.meta.glob('@/mastodon/locales/*.json', {
+//   query: { as: 'json' },
+// });
 
-  await worker.start({
-    onUnhandledFrame: unhandledFrameHandler,
-  });
-
-  return worker;
+// Initialize MSW
+initialize({
+  onUnhandledRequest: unhandledRequestHandler,
 });
 
 const preview: Preview = {
@@ -171,7 +170,7 @@ const preview: Preview = {
     (Story, { globals }) => {
       const theme = globals.theme;
       useEffect(() => {
-        document.documentElement.dataset.colorScheme = theme;
+        document.body.setAttribute('data-color-scheme', theme);
       }, [theme]);
       return <Story />;
     },
@@ -205,17 +204,20 @@ const preview: Preview = {
         </IdentityContext.Provider>
       );
     },
+    (Story, { parameters }) => {
+      useEffect(() => {
+        document.documentElement.dataset.redesign = parameters.redesign
+          ? 'true'
+          : 'false';
+      }, [parameters.redesign]);
+      return <Story />;
+    },
   ],
   loaders: [
-    // Storybook runs loaders concurrently, so wait for msw to be ready
-    async (context) => {
-      await startMsw(context);
-      await Promise.all([
-        importCustomEmojiData(),
-        importLegacyShortcodes(),
-        importEmojiData(context.globals.locale),
-      ]);
-    },
+    mswLoader,
+    importCustomEmojiData,
+    importLegacyShortcodes,
+    ({ globals: { locale } }) => importEmojiData(locale),
   ],
   parameters: {
     layout: 'centered',

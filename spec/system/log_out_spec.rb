@@ -32,13 +32,15 @@ RSpec.describe 'Log out' do
       expect(page)
         .to have_css('body', class: 'app-body')
 
-      within 'nav' do
-        click_on frontend_translations('tabs_bar.account_settings')
+      within '.navigation-panel' do
+        click_on 'More'
       end
 
-      click_on frontend_translations('navigation_bar.sign_out')
+      within '.dropdown-menu' do
+        click_on 'Logout'
+      end
 
-      click_on frontend_translations('confirmations.logout.confirm')
+      click_on 'Log out'
 
       expect(page)
         .to have_title(I18n.t('auth.login'))

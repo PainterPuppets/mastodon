@@ -56,9 +56,6 @@ kab:
       email_status: Addad n imayl
       enable: Rmed
       enabled: Yermed
-      follow_recommendations:
-        allowed: Yettwassireg
-        title: Ḍfeṛ iwellihen
       followers: Imeḍfaṛen
       follows: Yeṭafaṛ
       header: Ixef
@@ -122,10 +119,6 @@ kab:
       subscribe: Jerred
       suspended: Yettwaḥbes
       title: Imiḍanen
-      trends:
-        allow: Sireg
-        allowed: Yettwassireg
-        title: Tisuffaɣ tinezzaɣ
       unconfirmed_email: Imayl ur yettwasentem ara
       undo_silenced: Kkes asgugem
       unsubscribe: Ur ṭafar ara
@@ -339,8 +332,6 @@ kab:
     export_domain_blocks:
       no_file: Ulac afaylu yettwafernen
     fasp:
-      capabilities:
-        enable: Rmed
       debug:
         callbacks:
           delete: Kkes
@@ -356,6 +347,7 @@ kab:
         registrations:
           confirm: Sentem
           reject: Agi
+        save: Sekles
         sign_in: Qqen
         status: Addad
       title: FASP
@@ -514,6 +506,7 @@ kab:
         preamble: Sagen agrudem web n Mastodon.
         title: Udem
       discovery:
+        privacy: Tabaḍnit
         profile_directory: Akaram n imaɣnuten
         title: Asnirem
         trends: Ayen mucaɛen
@@ -522,9 +515,6 @@ kab:
         all: I medden akk
         disabled: Ɣef ula yiwen
         users: Ɣef yimseqdacen idiganen i yeqqnen
-      external:
-        directory: Akaram n uqeddac
-        privacy: Tabaḍnit
       feed_access:
         modes:
           public: Yal yiwen
@@ -658,6 +648,7 @@ kab:
         title: Ihacṭagen inezzaɣ
   appearance:
     advanced_settings: Iɣewwaren leqqayen
+    discovery: Asnirem
     localization:
       body: Mastodon suqqlen-t-id yiwiziwen.
       guide_link: https://crowdin.com/project/mastodon

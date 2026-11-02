@@ -1,8 +1,13 @@
 import type { FC, MouseEventHandler } from 'react';
 
-import { PencilIcon, TrashIcon } from '@phosphor-icons/react';
+import classNames from 'classnames';
 
-import { Button, IconButton } from '@/mastodon/components/button/redesign';
+import { Button } from '@/mastodon/components/button';
+import { IconButton } from '@/mastodon/components/icon_button';
+import DeleteIcon from '@/material-icons/400-24px/delete.svg?react';
+import EditIcon from '@/material-icons/400-24px/edit.svg?react';
+
+import classes from '../styles.module.scss';
 
 export interface EditButtonProps {
   onClick: MouseEventHandler;
@@ -24,7 +29,11 @@ export const EditButton: FC<EditButtonProps> = ({
   }
 
   return (
-    <Button onClick={onClick} disabled={disabled} size='sm'>
+    <Button
+      className={classes.editButton}
+      onClick={onClick}
+      disabled={disabled}
+    >
       {label}
     </Button>
   );
@@ -35,9 +44,14 @@ export const EditIconButton: FC<{
   title: string;
   disabled?: boolean;
 }> = ({ title, onClick, disabled }) => (
-  <IconButton icon={PencilIcon} onClick={onClick} disabled={disabled} size='sm'>
-    {title}
-  </IconButton>
+  <IconButton
+    icon='pencil'
+    iconComponent={EditIcon}
+    onClick={onClick}
+    className={classes.editButton}
+    title={title}
+    disabled={disabled}
+  />
 );
 
 export const DeleteIconButton: FC<{
@@ -46,12 +60,11 @@ export const DeleteIconButton: FC<{
   disabled?: boolean;
 }> = ({ onClick, label, disabled }) => (
   <IconButton
-    icon={TrashIcon}
+    icon='delete'
+    iconComponent={DeleteIcon}
     onClick={onClick}
-    color='destructive'
+    className={classNames(classes.editButton, classes.deleteButton)}
+    title={label}
     disabled={disabled}
-    size='sm'
-  >
-    {label}
-  </IconButton>
+  />
 );

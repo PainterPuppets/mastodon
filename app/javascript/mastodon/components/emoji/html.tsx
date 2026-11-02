@@ -6,52 +6,38 @@ import type {
   OnElementHandler,
 } from '@/mastodon/utils/html';
 import { htmlStringToComponents } from '@/mastodon/utils/html';
-import type { PolymorphicProps } from '@/types/polymorphic';
+import { polymorphicForwardRef } from '@/types/polymorphic';
 
 import { AnimateEmojiProvider, CustomEmojiProvider } from './context';
 import { textToEmojis } from './index';
 
-export interface EmojiHTMLProps<
-  Arg extends Record<string, unknown> = Record<string, unknown>,
-> {
+export interface EmojiHTMLProps {
   htmlString: string;
   extraEmojis?: CustomEmojiMapArg;
   className?: string;
-  onElement?: OnElementHandler<Arg>;
-  onAttribute?: OnAttributeHandler<Arg>;
-  extraArgs?: Arg;
+  onElement?: OnElementHandler;
+  onAttribute?: OnAttributeHandler;
 }
 
-export const EmojiHTML = <
-  As extends React.ElementType = 'div',
-  Arg extends Record<string, unknown> = Record<string, unknown>,
->({
-  extraEmojis,
-  htmlString,
-  onElement,
-  onAttribute,
-  extraArgs,
-  children,
-  ...props
-}: PolymorphicProps<EmojiHTMLProps<Arg>, As>) => {
-  const contents = useMemo(
-    () =>
-      htmlStringToComponents(htmlString, {
-        onText: textToEmojis,
-        onElement,
-        onAttribute,
-        extraArgs,
-      }),
-    [extraArgs, htmlString, onAttribute, onElement],
-  );
+export const EmojiHTML = polymorphicForwardRef<'div', EmojiHTMLProps>(
+  ({ extraEmojis, htmlString, onElement, onAttribute, ...props }, ref) => {
+    const contents = useMemo(
+      () =>
+        htmlStringToComponents(htmlString, {
+          onText: textToEmojis,
+          onElement,
+          onAttribute,
+        }),
+      [htmlString, onAttribute, onElement],
+    );
 
-  return (
-    <CustomEmojiProvider emojis={extraEmojis}>
-      <AnimateEmojiProvider {...props}>
-        {contents}
-
-        {children}
-      </AnimateEmojiProvider>
-    </CustomEmojiProvider>
-  );
-};
+    return (
+      <CustomEmojiProvider emojis={extraEmojis}>
+        <AnimateEmojiProvider {...props} ref={ref}>
+          {contents}
+        </AnimateEmojiProvider>
+      </CustomEmojiProvider>
+    );
+  },
+);
+EmojiHTML.displayName = 'EmojiHTML';

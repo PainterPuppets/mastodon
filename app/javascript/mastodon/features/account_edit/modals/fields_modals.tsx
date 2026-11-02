@@ -10,7 +10,7 @@ import type { FC, FocusEventHandler } from 'react';
 import { defineMessages, FormattedMessage, useIntl } from 'react-intl';
 
 import { closeModal } from '@/mastodon/actions/modal';
-import { Button } from '@/mastodon/components/button/redesign';
+import { Button } from '@/mastodon/components/button';
 import type { FieldStatus } from '@/mastodon/components/form_fields';
 import { EmojiTextInputField } from '@/mastodon/components/form_fields';
 import { useCustomEmojis } from '@/mastodon/hooks/useCustomEmojis';
@@ -155,7 +155,9 @@ export const EditFieldModal = forwardRef<
       if (value.length > RECOMMENDED_LIMIT) {
         return {
           variant: 'warning',
-          message: intl.formatMessage(messages.warningLength),
+          message: intl.formatMessage(messages.warningLength, {
+            max: RECOMMENDED_LIMIT,
+          }),
         };
       }
 
@@ -313,12 +315,7 @@ export const DeleteFieldModal: FC<DialogModalProps & { fieldKey: string }> = ({
         />
       }
       buttons={
-        <Button
-          variant='solid'
-          color='destructive'
-          onClick={handleDelete}
-          disabled={isPending}
-        >
+        <Button dangerous onClick={handleDelete} disabled={isPending}>
           <FormattedMessage
             id='account_edit.field_delete_modal.delete_button'
             defaultMessage='Delete'

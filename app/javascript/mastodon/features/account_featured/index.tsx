@@ -9,10 +9,7 @@ import { List as ImmutableList } from 'immutable';
 import { fetchEndorsedAccounts } from '@/mastodon/actions/accounts';
 import { AccountHeader } from '@/mastodon/components/account_header';
 import { AccountListItem } from '@/mastodon/components/account_list_item';
-import { Column } from '@/mastodon/components/column';
-import { ColumnBackButton } from '@/mastodon/components/column/back_button';
-import { ColumnHeader } from '@/mastodon/components/column_header';
-import { DisplayNameSimple } from '@/mastodon/components/display_name/simple';
+import { ColumnBackButton } from '@/mastodon/components/column_back_button';
 import { LoadingIndicator } from '@/mastodon/components/loading_indicator';
 import { RemoteHint } from '@/mastodon/components/remote_hint';
 import {
@@ -23,12 +20,12 @@ import {
 import type { TruncatedListItemInfo } from '@/mastodon/components/truncated_list';
 import { TruncatedListItems } from '@/mastodon/components/truncated_list';
 import { BundleColumnError } from '@/mastodon/features/ui/components/bundle_column_error';
+import Column from '@/mastodon/features/ui/components/column';
 import { useAccount } from '@/mastodon/hooks/useAccount';
 import { useAccountId } from '@/mastodon/hooks/useAccountId';
 import { useAccountVisibility } from '@/mastodon/hooks/useAccountVisibility';
 import { me } from '@/mastodon/initial_state';
 import { useAppDispatch, useAppSelector } from '@/mastodon/store';
-import { isRedesignEnabled } from '@/mastodon/utils/environment';
 import AddIcon from '@/material-icons/400-24px/add.svg?react';
 
 import { CollectionListItem } from '../collections/components/collection_list_item';
@@ -132,14 +129,7 @@ const AccountFeatured: React.FC<{ multiColumn: boolean }> = ({
 
   return (
     <Column>
-      {isRedesignEnabled() ? (
-        <ColumnHeader
-          withBackButton
-          title={<DisplayNameSimple account={account} />}
-        />
-      ) : (
-        <ColumnBackButton />
-      )}
+      <ColumnBackButton />
 
       <Scrollable>
         {accountId && (
@@ -161,10 +151,7 @@ const AccountFeatured: React.FC<{ multiColumn: boolean }> = ({
                   aria-posinset={index + 1}
                   aria-setsize={featuredAccountIds.size}
                 >
-                  <AccountListItem
-                    accountId={featuredAccountId}
-                    reference='featured_account'
-                  />
+                  <AccountListItem accountId={featuredAccountId} />
                 </Article>
               ))}
             </ItemList>
@@ -228,17 +215,9 @@ const AccountFeaturedWrapper = ({
   children,
   accountId,
 }: React.PropsWithChildren<{ accountId?: string }>) => {
-  const account = useAccount(accountId);
   return (
     <Column>
-      {isRedesignEnabled() ? (
-        <ColumnHeader
-          withBackButton
-          title={<DisplayNameSimple account={account} />}
-        />
-      ) : (
-        <ColumnBackButton />
-      )}
+      <ColumnBackButton />
       <div className='scrollable scrollable--flex'>
         {accountId && <AccountHeader accountId={accountId} />}
         {children}

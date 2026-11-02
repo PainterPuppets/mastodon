@@ -25,8 +25,8 @@ import { useAppSelector, useAppDispatch } from 'mastodon/store';
 
 export const HoverCardAccount = forwardRef<
   HTMLDivElement,
-  { accountId?: string; reference?: string }
->(({ accountId, reference }, ref) => {
+  { accountId?: string }
+>(({ accountId }, ref) => {
   const dispatch = useAppDispatch();
 
   const account = useAppSelector((state) =>
@@ -171,10 +171,7 @@ export const HoverCardAccount = forwardRef<
                 )}
               </div>
 
-              <FollowButton
-                accountId={accountId}
-                reference={reference ?? 'hover_card'}
-              />
+              <FollowButton accountId={accountId} />
             </>
           )}
         </>

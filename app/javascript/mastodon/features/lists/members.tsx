@@ -6,9 +6,7 @@ import { useParams, Link } from 'react-router-dom';
 
 import { Helmet } from '@unhead/react/helmet';
 
-import { Column } from '@/mastodon/components/column';
-import { ColumnSearchHeader } from '@/mastodon/components/column/search_header';
-import { ColumnHeader } from '@/mastodon/components/column_header';
+import ListAltIcon from '@/material-icons/400-24px/list_alt.svg?react';
 import SquigglyArrow from '@/svg-icons/squiggly_arrow.svg?react';
 import { fetchRelationships } from 'mastodon/actions/accounts';
 import { showAlertForError } from 'mastodon/actions/alerts';
@@ -23,7 +21,10 @@ import {
 } from 'mastodon/api/lists';
 import { Avatar } from 'mastodon/components/avatar';
 import { VerifiedBadge } from 'mastodon/components/badge';
-import { Button } from 'mastodon/components/button/redesign';
+import { Button } from 'mastodon/components/button';
+import { Column } from 'mastodon/components/column';
+import { ColumnHeader } from 'mastodon/components/column_header';
+import { ColumnSearchHeader } from 'mastodon/components/column_search_header';
 import { FollowersCounter } from 'mastodon/components/counters';
 import { DisplayName } from 'mastodon/components/display_name';
 import ScrollableList from 'mastodon/components/scrollable_list';
@@ -32,19 +33,16 @@ import { useSearchAccounts } from 'mastodon/hooks/useSearchAccounts';
 import { me } from 'mastodon/initial_state';
 import { useAppDispatch, useAppSelector } from 'mastodon/store';
 
-const messages = defineMessages({
+export const messages = defineMessages({
   manageMembers: {
-    id: 'custom_feeds.manage_accounts_title',
-    defaultMessage: 'Manage Feed Members',
+    id: 'column.list_members',
+    defaultMessage: 'Manage list members',
   },
   placeholder: {
     id: 'lists.search',
     defaultMessage: 'Search',
   },
-  enterSearch: {
-    id: 'custom_feeds.add_to_feed',
-    defaultMessage: 'Add to feed',
-  },
+  enterSearch: { id: 'lists.add_to_list', defaultMessage: 'Add to list' },
   add: { id: 'lists.add_member', defaultMessage: 'Add' },
   remove: { id: 'lists.remove_member', defaultMessage: 'Remove' },
   back: { id: 'column_back_button.label', defaultMessage: 'Back' },
@@ -142,12 +140,12 @@ const AccountItem: React.FC<{
 
         <div className='account__relationship'>
           <Button
-            color={partOfList ? 'neutral' : 'accent'}
-            variant={partOfList ? 'tonal' : 'solid'}
+            text={intl.formatMessage(
+              partOfList ? messages.remove : messages.add,
+            )}
+            secondary={partOfList}
             onClick={handleClick}
-          >
-            {intl.formatMessage(partOfList ? messages.remove : messages.add)}
-          </Button>
+          />
         </div>
       </div>
     </div>
@@ -235,8 +233,11 @@ const ListMembers: React.FC<{
       label={intl.formatMessage(messages.manageMembers)}
     >
       <ColumnHeader
-        withBackButton
         title={intl.formatMessage(messages.manageMembers)}
+        icon='list-ul'
+        iconComponent={ListAltIcon}
+        multiColumn={multiColumn}
+        showBackButton
       />
 
       <ColumnSearchHeader
@@ -259,14 +260,9 @@ const ListMembers: React.FC<{
             {displayedAccountIds.length > 0 && <div className='spacer' />}
 
             <div className='column-footer'>
-              <Button
-                as='link'
-                to={`/lists/${id}`}
-                variant='solid'
-                color='accent'
-              >
+              <Link to={`/lists/${id}`} className='button button--block'>
                 <FormattedMessage id='lists.done' defaultMessage='Done' />
-              </Button>
+              </Link>
             </div>
           </>
         }

@@ -97,12 +97,8 @@ export const Card: React.FC<{ id: string; source: SuggestionSource }> = ({
 
       <div className='explore-suggestions-card__body'>
         <Link
-          to={{
-            pathname: `/@${account.get('acct')}`,
-            state: { reference: 'suggestions' },
-          }}
+          to={`/@${account.get('acct')}`}
           data-hover-card-account={account.id}
-          data-hover-card-reference='suggestions'
           className='explore-suggestions-card__link'
         >
           <Avatar
@@ -120,7 +116,7 @@ export const Card: React.FC<{ id: string; source: SuggestionSource }> = ({
             title={intl.formatMessage(messages.dismiss)}
             className='explore-suggestions-card__dismiss-button'
           />
-          <FollowButton accountId={account.get('id')} reference='suggestions' />
+          <FollowButton accountId={account.get('id')} />
         </div>
       </div>
     </div>

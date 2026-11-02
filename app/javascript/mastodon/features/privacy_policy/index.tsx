@@ -2,20 +2,15 @@ import { useState, useEffect } from 'react';
 
 import { FormattedMessage, useIntl, defineMessages } from 'react-intl';
 
-import classNames from 'classnames';
-
 import { Helmet } from '@unhead/react/helmet';
 
-import { Column } from '@/mastodon/components/column';
-import { ColumnHeader } from '@/mastodon/components/column_header';
 import { NavigationFocusTarget } from '@/mastodon/components/navigation_focus_target';
-import { isRedesignEnabled } from '@/mastodon/utils/environment';
 import { apiGetPrivacyPolicy } from 'mastodon/api/instance';
 import type { ApiPrivacyPolicyJSON } from 'mastodon/api_types/instance';
+import { Column } from 'mastodon/components/column';
 import { FormattedDateWrapper } from 'mastodon/components/formatted_date';
 import { Skeleton } from 'mastodon/components/skeleton';
 
-import aboutClasses from '../about/styles.module.scss';
 import { getColumnSkipLinkId } from '../ui/components/skip_links';
 
 const messages = defineMessages({
@@ -46,31 +41,14 @@ const PrivacyPolicy: React.FC<{
       bindToDocument={!multiColumn}
       label={intl.formatMessage(messages.title)}
     >
-      {isRedesignEnabled() && (
-        <ColumnHeader
-          title={
+      <div className='scrollable privacy-policy'>
+        <div className='column-title'>
+          <NavigationFocusTarget as='h1' id={getColumnSkipLinkId(1)}>
             <FormattedMessage
               id='privacy_policy.title'
               defaultMessage='Privacy Policy'
             />
-          }
-        />
-      )}
-      <div
-        className={classNames(
-          'scrollable privacy-policy',
-          isRedesignEnabled() && aboutClasses.redesignOverrides,
-        )}
-      >
-        <div className='column-title'>
-          {!isRedesignEnabled() && (
-            <NavigationFocusTarget as='h1' id={getColumnSkipLinkId(1)}>
-              <FormattedMessage
-                id='privacy_policy.title'
-                defaultMessage='Privacy Policy'
-              />
-            </NavigationFocusTarget>
-          )}
+          </NavigationFocusTarget>
           <p>
             <FormattedMessage
               id='privacy_policy.last_updated'

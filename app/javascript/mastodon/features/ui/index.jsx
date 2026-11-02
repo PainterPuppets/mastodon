@@ -23,18 +23,15 @@ import { PictureInPicture } from 'mastodon/features/picture_in_picture';
 import { identityContextPropShape, withIdentity } from 'mastodon/identity_context';
 import { layoutFromWindow, transientSingleColumn } from 'mastodon/is_mobile';
 import { WithRouterPropTypes } from 'mastodon/utils/react_router';
-import { isRedesignEnabled } from '@/mastodon/utils/environment';
 import { checkAnnualReport } from '@/mastodon/reducers/slices/annual_report';
 
-import { uploadCompose, resetCompose } from '../../actions/compose';
+import { uploadCompose, resetCompose, changeComposeSpoilerness } from '../../actions/compose';
 import { clearHeight } from '../../actions/height_cache';
 import { fetchServer, fetchServerTranslationLanguages } from '../../actions/server';
 import { expandHomeTimeline } from '../../actions/timelines';
 import { initialState, forceSingleColumn, me, owner, singleUserMode, trendsEnabled, landingPage, localLiveFeedAccess, disableHoverCards, domain } from '../../initial_state';
 
-import { openNewComposer, toggleContentWarning } from '@/mastodon/reducers/slices/composer';
-
-import { BundleColumnError } from './components/bundle_column_error';
+import BundleColumnError from './components/bundle_column_error';
 import { NavigationBar } from './components/navigation_bar';
 import { UploadArea } from './components/upload_area';
 import { HashtagMenuController } from './components/hashtag_menu_controller';
@@ -44,6 +41,7 @@ import ModalContainer from './containers/modal_container';
 import {
   Compose,
   Status,
+  GettingStarted,
   KeyboardShortcuts,
   Firehose,
   AccountTimeline,
@@ -71,7 +69,9 @@ import {
   CollectionDetail,
   CollectionsEditor,
   Blocks,
+  DomainBlocks,
   Mutes,
+  PinnedStatuses,
   Directory,
   OnboardingProfile,
   OnboardingFollows,
@@ -86,13 +86,13 @@ import {
   Quotes,
 } from './util/async-components';
 import { ColumnsContextProvider } from './util/columns_context';
-import { focusColumn, getFocusedItemIndex, focusItemSibling, focusFirstItem, getFocusedColumnIndex, focusFirstVisibleItemInColumn } from './util/focusUtils';
+import { focusColumn, getFocusedItemIndex, focusItemSibling, focusFirstItem, getFocusedColumnIndex } from './util/focusUtils';
 import { WrappedSwitch, WrappedRoute } from './util/react_router_helpers';
 import { CustomHomepage } from 'mastodon/features/custom_homepage';
 
 // Dummy import, to make sure that <Status /> ends up in the application bundle.
 // Without this it ends up in ~8 very commonly used bundles.
-import '../../components/status/legacy/status';
+import '../../components/status';
 import { getNavigationSkipLinkId, SkipLinks } from './components/skip_links';
 
 const messages = defineMessages({
@@ -163,16 +163,14 @@ class SwitchingColumnsArea extends PureComponent {
     const { signedIn } = this.props.identity;
     const pathName = this.props.location.pathname;
 
-    const defaultHomepage = (singleColumn || isRedesignEnabled())
-      ? '/home'
-      : '/deck/getting-started';
-
     let rootRedirect;
     if (signedIn) {
       if (forceOnboarding) {
         rootRedirect = '/start';
+      } else if (singleColumn) {
+        rootRedirect = '/home';
       } else {
-        rootRedirect = defaultHomepage;
+        rootRedirect = '/deck/getting-started';
       }
     } else if (singleUserMode && owner && initialState?.accounts[owner]) {
       rootRedirect = `/@${initialState.accounts[owner].username}`;
@@ -186,39 +184,27 @@ class SwitchingColumnsArea extends PureComponent {
       rootRedirect = '/about';
     }
 
-    // Turns a pathname into a location object with a flag to disable the
-    // automatic focusing of the page that happens for user-initiated navigations
-    const redirectWithoutFocusing = (pathname) => ({
-      pathname,
-      state: {
-        ...this.props.location.state,
-        focusTarget: false,
-      }
-    });
-
     return (
       <ColumnsContextProvider multiColumn={!singleColumn}>
         <ColumnsArea ref={this.setRef} singleColumn={singleColumn} domain={domain} minimalShell={minimalShell}>
           <WrappedSwitch>
-            <Redirect from='/' to={redirectWithoutFocusing(rootRedirect)} exact />
+            <Redirect from='/' to={{pathname: rootRedirect, state: {...this.props.location.state, focusTarget: false}}} exact />
 
-            {(forceSingleColumn || transientSingleColumn) ? <Redirect from='/deck' to={redirectWithoutFocusing('/home')} exact /> : null}
+            {forceSingleColumn || transientSingleColumn ? <Redirect from='/deck' to='/home' exact /> : null}
             {(forceSingleColumn || transientSingleColumn) && pathName.startsWith('/deck/') ? <Redirect from={pathName} to={{...this.props.location, pathname: pathName.slice(5)}} /> : null}
             {/* Redirect old bookmarks (without /deck) with home-like routes to the advanced interface */}
-            {!singleColumn && pathName === '/home' ? <Redirect from='/home' to={redirectWithoutFocusing(defaultHomepage)} exact /> : null}
-            {(pathName === '/getting-started' || isRedesignEnabled())
-              ? <Redirect from='/getting-started' to={redirectWithoutFocusing(defaultHomepage)} exact />
-              : null
-            }
+            {!singleColumn && pathName === '/home' ? <Redirect from='/home' to='/deck/getting-started' exact /> : null}
+            {pathName === '/getting-started' ? <Redirect from='/getting-started' to={singleColumn ? '/home' : '/deck/getting-started'} exact /> : null}
 
+            <WrappedRoute path='/getting-started' component={GettingStarted} content={children} />
             <WrappedRoute path='/keyboard-shortcuts' component={KeyboardShortcuts} content={children} />
             <WrappedRoute path='/about' component={About} content={children} />
             <WrappedRoute path='/privacy-policy' component={PrivacyPolicy} content={children} />
             <WrappedRoute path='/terms-of-service/:date?' component={TermsOfService} content={children} />
 
             <WrappedRoute path={['/home', '/timelines/home']} component={HomeTimeline} content={children} />
-            <Redirect from='/timelines/public' to={redirectWithoutFocusing('/public')} exact />
-            <Redirect from='/timelines/public/local' to={redirectWithoutFocusing('/public/local')} exact />
+            <Redirect from='/timelines/public' to='/public' exact />
+            <Redirect from='/timelines/public/local' to='/public/local' exact />
             <WrappedRoute path='/public' exact component={Firehose} componentParams={{ feedType: 'public' }} content={children} />
             <WrappedRoute path='/public/local' exact component={Firehose} componentParams={{ feedType: 'community' }} content={children} />
             <WrappedRoute path='/public/remote' exact component={Firehose} componentParams={{ feedType: 'public:remote' }} content={children} />
@@ -235,6 +221,7 @@ class SwitchingColumnsArea extends PureComponent {
             <WrappedRoute path='/favourites' component={FavouritedStatuses} content={children} />
 
             <WrappedRoute path='/bookmarks' component={BookmarkedStatuses} content={children} />
+            <WrappedRoute path='/pinned' component={PinnedStatuses} content={children} />
 
             <WrappedRoute path='/start/profile' exact component={OnboardingProfile} content={children} />
             <WrappedRoute path={['/start', '/start/follows']} exact component={OnboardingFollows} content={children} />
@@ -270,7 +257,7 @@ class SwitchingColumnsArea extends PureComponent {
 
             <WrappedRoute path='/follow_requests' component={FollowRequests} content={children} />
             <WrappedRoute path='/blocks' component={Blocks} content={children} />
-            <Redirect from='/domain_blocks' to='/blocks/domains' />
+            <WrappedRoute path='/domain_blocks' component={DomainBlocks} content={children} />
             <WrappedRoute path='/followed_tags' component={FollowedTags} content={children} />
             <WrappedRoute path='/mutes' component={Mutes} content={children} />
             <WrappedRoute path='/lists' component={Lists} content={children} />
@@ -282,6 +269,7 @@ class SwitchingColumnsArea extends PureComponent {
       </ColumnsContextProvider>
     );
   }
+
 }
 
 class UI extends PureComponent {
@@ -350,7 +338,7 @@ class UI extends PureComponent {
     if (!this.props.isUploadEnabled) {
       return;
     }
-    if (this.dataTransferIsText(e.dataTransfer)) return;
+    if (this.dataTransferIsText(e.dataTransfer)) return false;
 
     e.preventDefault();
     e.stopPropagation();
@@ -361,7 +349,7 @@ class UI extends PureComponent {
       // do nothing
     }
 
-    return;
+    return false;
   };
 
   handleDrop = (e) => {
@@ -477,11 +465,6 @@ class UI extends PureComponent {
   handleHotkeyNew = e => {
     e.preventDefault();
 
-    if (isRedesignEnabled()) {
-      this.props.dispatch(openNewComposer());
-      return;
-    }
-
     const element = this.node.querySelector('.autosuggest-textarea__textarea');
 
     if (element) {
@@ -489,19 +472,10 @@ class UI extends PureComponent {
     }
   };
 
-  handleHotkeyNewMessage = (e) => {
-    if (!isRedesignEnabled()) {
-      return;
-    }
-
-    e.preventDefault();
-    this.props.dispatch(openNewComposer({ type: 'message' }));
-  }
-
   handleHotkeySearch = e => {
     e.preventDefault();
 
-    const element = this.node.querySelector('[data-main-search="true"]');
+    const element = this.node.querySelector('.search__input');
 
     if (element) {
       element.focus();
@@ -509,17 +483,13 @@ class UI extends PureComponent {
   };
 
   handleHotkeyForceNew = e => {
-    if (isRedesignEnabled()) {
-      this.props.dispatch(openNewComposer({ force: true }));
-      return;
-    }
     this.handleHotkeyNew(e);
     this.props.dispatch(resetCompose());
   };
 
   handleHotkeyToggleComposeSpoilers = e => {
     e.preventDefault();
-    this.props.dispatch(toggleContentWarning());
+    this.props.dispatch(changeComposeSpoilerness());
   };
 
   handleHotkeyFocusColumn = e => {
@@ -537,7 +507,7 @@ class UI extends PureComponent {
   handleMoveUp = () => {
     const currentItemIndex = getFocusedItemIndex();
     if (currentItemIndex === -1) {
-      return focusFirstVisibleItemInColumn(getFocusedColumnIndex());
+      return focusColumn(getFocusedColumnIndex());
     } else {
       return focusItemSibling(currentItemIndex, -1);
     }
@@ -546,7 +516,7 @@ class UI extends PureComponent {
   handleMoveDown = () => {
     const currentItemIndex = getFocusedItemIndex();
     if (currentItemIndex === -1) {
-      return focusFirstVisibleItemInColumn(getFocusedColumnIndex());
+      return focusColumn(getFocusedColumnIndex());
     } else {
       return focusItemSibling(currentItemIndex, 1);
     }
@@ -612,6 +582,10 @@ class UI extends PureComponent {
     this.props.history.push('/favourites');
   };
 
+  handleHotkeyGoToPinned = () => {
+    this.props.history.push('/pinned');
+  };
+
   handleHotkeyGoToProfile = () => {
     this.props.history.push(`/@${this.props.username}`);
   };
@@ -637,7 +611,6 @@ class UI extends PureComponent {
       new: this.handleHotkeyNew,
       search: this.handleHotkeySearch,
       forceNew: this.handleHotkeyForceNew,
-      newMessage: this.handleHotkeyNewMessage,
       toggleComposeSpoilers: this.handleHotkeyToggleComposeSpoilers,
       focusColumn: this.handleHotkeyFocusColumn,
       focusLoadMore: this.handleHotkeyLoadMore,
@@ -653,6 +626,7 @@ class UI extends PureComponent {
       goToDirect: this.handleHotkeyGoToDirect,
       goToStart: this.handleHotkeyGoToStart,
       goToFavourites: this.handleHotkeyGoToFavourites,
+      goToPinned: this.handleHotkeyGoToPinned,
       goToProfile: this.handleHotkeyGoToProfile,
       goToBlocked: this.handleHotkeyGoToBlocked,
       goToMuted: this.handleHotkeyGoToMuted,
@@ -665,7 +639,12 @@ class UI extends PureComponent {
     return (
       <Hotkeys global handlers={handlers}>
         <div className={classNames('ui', { 'is-composing': isComposing })} ref={this.setRef}>
-          {!minimalShell && <SkipLinks />}
+          {!minimalShell && (
+            <SkipLinks
+              multiColumn={layout === 'multi-column'}
+              onFocusGettingStartedColumn={this.handleHotkeyGoToStart}
+            />
+          )}
 
           <SwitchingColumnsArea
             identity={this.props.identity}
@@ -678,7 +657,7 @@ class UI extends PureComponent {
             {children}
           </SwitchingColumnsArea>
 
-          {!minimalShell && !isRedesignEnabled() && <NavigationBar />}
+          {!minimalShell && <NavigationBar />}
           {layout !== 'mobile' && <PictureInPicture />}
           <AlertsController />
           {!disableHoverCards && <HoverCardController />}

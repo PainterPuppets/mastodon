@@ -7,7 +7,7 @@ import type { Area } from 'react-easy-crop';
 import Cropper from 'react-easy-crop';
 
 import { setDragUploadEnabled } from '@/mastodon/actions/compose_typed';
-import { Button } from '@/mastodon/components/button/redesign';
+import { Button } from '@/mastodon/components/button';
 import { RangeInputField } from '@/mastodon/components/form_fields/range_input_field';
 import {
   selectImageInfo,
@@ -283,9 +283,8 @@ const StepUpload: FC<{
         tagName='p'
       />
       <Button
-        variant='solid'
-        color='accent'
         onClick={handleUploadClick}
+        // eslint-disable-next-line jsx-a11y/no-autofocus -- This is the main input, so auto-focus on it.
         autoFocus
       >
         <FormattedMessage
@@ -357,18 +356,13 @@ const StepCrop: FC<{
           wrapperClassName={classes.zoomControl}
           inputPlacement='inline-end'
         />
-        <Button onClick={onCancel}>
+        <Button onClick={onCancel} secondary>
           <FormattedMessage
             id='account_edit.upload_modal.back'
             defaultMessage='Back'
           />
         </Button>
-        <Button
-          variant='solid'
-          color='accent'
-          onClick={handleNext}
-          disabled={!croppedArea}
-        >
+        <Button onClick={handleNext} disabled={!croppedArea}>
           <FormattedMessage
             id='account_edit.upload_modal.next'
             defaultMessage='Next'
@@ -399,18 +393,18 @@ const StepAlt: FC<{
         imageSrc={imageSrc}
         altText={altText}
         onChange={setAltText}
-        imageLocation={location}
+        hideTip={location === 'header'}
       />
 
       <div className={classes.cropActions}>
-        <Button onClick={onCancel}>
+        <Button onClick={onCancel} secondary>
           <FormattedMessage
             id='account_edit.upload_modal.back'
             defaultMessage='Back'
           />
         </Button>
 
-        <Button variant='solid' color='accent' onClick={handleComplete}>
+        <Button onClick={handleComplete}>
           <FormattedMessage
             id='account_edit.upload_modal.done'
             defaultMessage='Done'

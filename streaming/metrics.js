@@ -1,6 +1,6 @@
 // @ts-check
 
-import metrics from '@prometheus-io/client';
+import metrics from 'prom-client';
 
 /**
  * @typedef StreamingMetrics

@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 class HomeFeed < Feed
-  def initialize(account, options = {})
+  def initialize(account)
     @account = account
-    super(:home, account.id, options)
+    super(:home, account.id)
   end
 
   def async_refresh

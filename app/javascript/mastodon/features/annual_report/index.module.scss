@@ -175,7 +175,7 @@ $mobile-breakpoint: 540px;
 .title {
   text-transform: uppercase;
   color: var(--color-text-brand-soft);
-  font-weight: bold;
+  font-weight: 500;
 
   &:last-child {
     margin-bottom: -3px;
@@ -184,13 +184,13 @@ $mobile-breakpoint: 540px;
 
 .statLarge {
   font-size: 24px;
-  font-weight: bold;
+  font-weight: 500;
   overflow-wrap: break-word;
 }
 
 .statExtraLarge {
   font-size: 32px;
-  font-weight: bold;
+  font-weight: 500;
   line-height: 1;
   overflow-wrap: break-word;
 

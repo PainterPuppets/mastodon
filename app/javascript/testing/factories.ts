@@ -263,13 +263,21 @@ export function mediaAttachmentFactoryAPI(
 ): ApiMediaAttachmentJSON {
   switch (data.type ?? 'image') {
     case 'image':
-      return imageAttachmentFactoryAPI(data);
+      return imageAttachmentFactoryAPI(
+        data as PartialDeep<ApiImageAttachmentJSON>,
+      );
     case 'video':
-      return videoAttachmentFactoryAPI(data);
+      return videoAttachmentFactoryAPI(
+        data as PartialDeep<ApiVideoAttachmentJSON>,
+      );
     case 'audio':
-      return audioAttachmentFactoryAPI(data);
+      return audioAttachmentFactoryAPI(
+        data as PartialDeep<ApiAudioAttachmentJSON>,
+      );
     case 'gifv':
-      return gifvAttachmentFactoryAPI(data);
+      return gifvAttachmentFactoryAPI(
+        data as PartialDeep<ApiGifvAttachmentJSON>,
+      );
     default: {
       return {
         ...baseAttachment,

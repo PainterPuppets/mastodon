@@ -4,10 +4,10 @@ import { FormattedMessage, useIntl } from 'react-intl';
 
 import classNames from 'classnames';
 
-import { XIcon } from '@phosphor-icons/react';
-
-import { Button, IconButton } from '@/mastodon/components/button/redesign';
+import { Button } from '@/mastodon/components/button';
+import { IconButton } from '@/mastodon/components/icon_button';
 import { NavigationFocusTarget } from '@/mastodon/components/navigation_focus_target';
+import CloseIcon from '@/material-icons/400-24px/close.svg?react';
 
 export type { BaseConfirmationModalProps as DialogModalProps } from './confirmation_modals/confirmation_modal';
 
@@ -39,16 +39,14 @@ export const DialogModal: FC<DialogModalProps> = ({
       <div className='dialog-modal__header'>
         <IconButton
           className='dialog-modal__header__close'
-          icon={XIcon}
-          onClick={onClose}
-          variant='ghost'
-          size='sm'
-        >
-          {intl.formatMessage({
+          title={intl.formatMessage({
             id: 'lightbox.close',
             defaultMessage: 'Close',
           })}
-        </IconButton>
+          icon='close'
+          iconComponent={CloseIcon}
+          onClick={onClose}
+        />
 
         <NavigationFocusTarget as='h1' className='dialog-modal__header__title'>
           {title}
@@ -74,7 +72,7 @@ export const DialogModal: FC<DialogModalProps> = ({
       {(buttons || !noCancelButton) && (
         <div className='dialog-modal__content__actions'>
           {!noCancelButton && (
-            <Button onClick={onClose}>
+            <Button onClick={onClose} secondary>
               <FormattedMessage
                 id='confirmation_modal.cancel'
                 defaultMessage='Cancel'

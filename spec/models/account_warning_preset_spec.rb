@@ -3,11 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe AccountWarningPreset do
-  describe 'Validations' do
-    it { is_expected.to validate_presence_of(:text) }
-  end
-
-  describe '.alphabetical' do
+  describe 'alphabetical' do
     let(:first) { Fabricate(:account_warning_preset, title: 'aaa', text: 'aaa') }
     let(:second) { Fabricate(:account_warning_preset, title: 'bbb', text: 'aaa') }
     let(:third) { Fabricate(:account_warning_preset, title: 'bbb', text: 'bbb') }
